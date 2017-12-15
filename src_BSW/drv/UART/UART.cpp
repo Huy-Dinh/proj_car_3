@@ -341,7 +341,7 @@ static void UART__initModule(uartChannel_t channel) {
 
 	UARTReg->IOCR.B.ALTI = UART_tbl[channel].RxMux; /* Receiver Pin mapping */
 	UARTReg->IOCR.B.CTS = UART_tbl[channel].CsMux; /* @HD: Cs pin mapping */
-	UARTReg->IOCR.B.CPOL = UART_Config[channel].csPolarity; /*  @HD: CS polarity*/
+	UARTReg->IOCR.B.RCPOL = UART_Config[channel].csPolarity; /*  @HD: CS polarity*/
 	UARTReg->IOCR.B.CTSEN = UART_Config[channel].csEnable; /*  @HD: CS enabling*/
 
 	UART__setClockSource(UARTReg, UART_ClockSource_kernelClock); /* select the clock source*/
