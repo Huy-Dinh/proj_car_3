@@ -135,7 +135,11 @@ portPin_cfg_t const PORT_config[DERIVATE_NUM_PINS] =
 		{(Ifx_P *)&MODULE_P10, 4,	PORT_DEFAULT_MODE, 					PES_inactive,		_cleared, cmosAutomotiveSpeed4},					//Port 10 Pin 4
 		{(Ifx_P *)&MODULE_P10, 5,	PORT_DEFAULT_MODE, 					PES_inactive,		_cleared, cmosAutomotiveSpeed4},					//Port 10 Pin 5
 		{(Ifx_P *)&MODULE_P10, 6,	PORT_DEFAULT_MODE, 					PES_inactive,		_cleared, cmosAutomotiveSpeed4},					//Port 10 Pin 6
+#if (ASCLIN2 == UART4)
+		{(Ifx_P *)&MODULE_P10, 7,	_inputNoPullDevice, 				PES_inactive,		_cleared, cmosAutomotiveSpeed1},					//Port 10 Pin 7
+#else
 		{(Ifx_P *)&MODULE_P10, 7,	PORT_DEFAULT_MODE, 					PES_inactive,		_cleared, cmosAutomotiveSpeed4},					//Port 10 Pin 7
+#endif
 		{(Ifx_P *)&MODULE_P10, 8,	PORT_DEFAULT_MODE, 					PES_inactive,		_cleared, cmosAutomotiveSpeed4},					//Port 10 Pin 8
 		{(Ifx_P *)&MODULE_P10, 9,	PORT_DEFAULT_MODE, 					PES_inactive,		_cleared, cmosAutomotiveSpeed4},					//Port 10 Pin 9
 		{(Ifx_P *)&MODULE_P10, 10,	PORT_DEFAULT_MODE, 					PES_inactive,		_cleared, cmosAutomotiveSpeed4},					//Port 10 Pin 10

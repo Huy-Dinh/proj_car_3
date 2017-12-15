@@ -123,6 +123,7 @@ typedef struct {
 	bool Enable;
 	volatile Ifx_ASCLIN* module; /*  Base address */
 	RxSelect_t RxMux; /*  RX Port control */
+	CsSelect_t CsMux; /*  CS Port Control */
 	volatile Ifx_SRC_SRCR* SrcReg[3];
 } UART_t;
 /******************************************************************************/
@@ -131,44 +132,44 @@ typedef struct {
 const UART_t UART_tbl[UART_CHANNELS_NUM] =
 		{
 #if (ASCLIN0 == UARTUSB)
-				{ TRUE, &MODULE_ASCLIN0, RxSel_a, { &SRC_ASCLIN0RX,
+				{ TRUE, &MODULE_ASCLIN0, RxSel_a, CsSel_a, { &SRC_ASCLIN0RX,
 						&SRC_ASCLIN0TX, &SRC_ASCLIN0ERR } },
 #else
-				{	FALSE,0,(RxSelect_t)0, {0,0,0}},
+				{	FALSE,0,(RxSelect_t)0, (CsSelect_t) 0, {0,0,0}},
 #endif
 
 #if (ASCLIN1 == UART1)
-				{	TRUE, &MODULE_ASCLIN1, RxSel_b, {&SRC_ASCLIN1RX, &SRC_ASCLIN1TX,&SRC_ASCLIN1ERR}},
+				{	TRUE, &MODULE_ASCLIN1, RxSel_b, CsSel_a, {&SRC_ASCLIN1RX, &SRC_ASCLIN1TX,&SRC_ASCLIN1ERR}},
 #else
-				{ FALSE, 0, (RxSelect_t) 0, { 0, 0, 0 } },
+				{ FALSE, 0, (RxSelect_t) 0, (CsSelect_t) 0, { 0, 0, 0 } },
 #endif
 #if (ASCLIN1 == UART2)
-				{ TRUE, &MODULE_ASCLIN1, RxSel_g, { &SRC_ASCLIN1RX,
+				{ TRUE, &MODULE_ASCLIN1, RxSel_g, CsSel_a, { &SRC_ASCLIN1RX,
 						&SRC_ASCLIN1TX, &SRC_ASCLIN1ERR } },
 #else
-				{	FALSE,0,(RxSelect_t)0, {0,0,0}},
+				{	FALSE,0,(RxSelect_t)0, (CsSelect_t) 0, {0,0,0}},
 #endif
 #if (ASCLIN1 == UART3)
-				{	TRUE, &MODULE_ASCLIN1, RxSel_d, {&SRC_ASCLIN1RX, &SRC_ASCLIN1TX,&SRC_ASCLIN1ERR}},
+				{	TRUE, &MODULE_ASCLIN1, RxSel_d, CsSel_a, {&SRC_ASCLIN1RX, &SRC_ASCLIN1TX,&SRC_ASCLIN1ERR}},
 #else
-				{ FALSE, 0, (RxSelect_t) 0, { 0, 0, 0 } },
+				{ FALSE, 0, (RxSelect_t) 0, (CsSelect_t) 0, { 0, 0, 0 } },
 #endif
 #if (ASCLIN2 == UART4)
-				{ TRUE, &MODULE_ASCLIN2, RxSel_b, { &SRC_ASCLIN2RX,
+				{ TRUE, &MODULE_ASCLIN2, RxSel_b, CsSel_a, { &SRC_ASCLIN2RX,
 						&SRC_ASCLIN2TX, &SRC_ASCLIN2ERR } },
 #else
-				{	FALSE,0,(RxSelect_t)0, {0,0,0}},
+				{	FALSE,0,(RxSelect_t)0, (CsSelect_t) 0, {0,0,0}},
 #endif
 #if (ASCLIN2 == UART5)
-				{	TRUE,&MODULE_ASCLIN2, RxSel_e, {&SRC_ASCLIN2RX, &SRC_ASCLIN2TX,&SRC_ASCLIN2ERR}},
+				{	TRUE,&MODULE_ASCLIN2, RxSel_e, CsSel_a, {&SRC_ASCLIN2RX, &SRC_ASCLIN2TX,&SRC_ASCLIN2ERR}},
 #else
-				{ FALSE, 0, (RxSelect_t) 0, { 0, 0, 0 } },
+				{ FALSE, 0, (RxSelect_t) 0, (CsSelect_t) 0, { 0, 0, 0 } },
 #endif
 #if (ASCLIN3 == UART6)
-				{ TRUE, &MODULE_ASCLIN3, RxSel_e, { &SRC_ASCLIN3RX,
+				{ TRUE, &MODULE_ASCLIN3, RxSel_e, CsSel_a, { &SRC_ASCLIN3RX,
 						&SRC_ASCLIN3TX, &SRC_ASCLIN3ERR } },
 #else
-		{	FALSE,0,(RxSelect_t)0, {0,0,0}}
+		{	FALSE,0,(RxSelect_t)0, (CsSelect_t) 0, {0,0,0}}
 #endif
 	};
 
@@ -339,6 +340,9 @@ static void UART__initModule(uartChannel_t channel) {
 	UARTReg->FRAMECON.B.MODE = UART_FrameMode_asc; /* selecting the frame mode*/
 
 	UARTReg->IOCR.B.ALTI = UART_tbl[channel].RxMux; /* Receiver Pin mapping */
+	UARTReg->IOCR.B.CTS = UART_tbl[channel].CsMux; /* @HD: Cs pin mapping */
+	UARTReg->IOCR.B.CPOL = UART_Config[channel].csPolarity; /*  @HD: CS polarity*/
+	UARTReg->IOCR.B.CTSEN = UART_Config[channel].csEnable; /*  @HD: CS enabling*/
 
 	UART__setClockSource(UARTReg, UART_ClockSource_kernelClock); /* select the clock source*/
 
