@@ -39,6 +39,8 @@
 #include "IfxAsclin_reg.h"
 
 volatile uint8_t test = 0xFF;
+uint16_t counter = 0;
+
 
 void UART_RX_Isr(int inputChannel)
 {
@@ -52,6 +54,21 @@ void UART_RX_Isr(int inputChannel)
 void UART_TX_Isr(int inputChannel)
 {
 	MODULE_ASCLIN2.FLAGSCLEAR.B.TFLC = 1;
+}
+
+void Sample_Timer_Isr(int inputChannel)
+{
+	GPT12_Reload(GPT12_T2);
+	if (counter >= 19)
+	{
+		PORTPIN_toggle(Port13_Pin0);
+		counter = 0;
+	}
+	else
+	{
+		++counter;
+	}
+	//UART_WriteData(uart4, 'a');
 }
 
 void UART_Err_Isr(int inputChannel)
@@ -93,26 +110,26 @@ int main(){
 		if( RC_SUCCESS != QSPI_module_init(QSPI2,NULL))
 			DET_stop(AUTOCORE, QSPI_MODULE_INIT, 0);
 
-
+		//UART_WriteData(uart4, 'a');
 		//UART Init
 		UART_init();
 
 		ISR_Install_preOS(&SRC_ASCLIN2RX, UART_RX_Isr, cpu0, 34, uart4);
 		ISR_Install_preOS(&SRC_ASCLIN2TX, UART_TX_Isr, cpu0, 35, uart4);
+		ISR_Install_preOS(&SRC_GPT120T2, Sample_Timer_Isr, cpu0, 32, 0);
+		GPT12_StartStop(GPT12_T2,Start);
 		//ISR_Install_preOS(&SRC_ASCLIN2ERR, UART_Err_Isr, cpu0, 33, 10);
 		SYSTEM_EnableInterrupts();
 		//CANopen_Init which will initialize CAN
 		//if(CANopen_Init()!=RC_SUCCESS)
 		//	DET_stop(AUTOCORE,CAN_INIT, 0);
 
+
+
 		//Initialize core synchronization
 		SYNC_Init();
 		_nop();
 
-		while (1)
-		{
-			//UART_WriteData(uart4, 'a');
-		}
 	}
 
 
