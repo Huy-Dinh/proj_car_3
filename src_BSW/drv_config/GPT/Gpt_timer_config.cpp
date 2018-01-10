@@ -48,7 +48,8 @@ GPT12_Config_t const GPT_timerConfig []={
 		 |				|			   |					|			|		 	|		  		 		|                       |           |                       |                       |                   |                       |                       |
 		 |				|			   |					|			|		 	|		  		 		|                       |           |                       |                       |                   |                       |                       |
 		 */
-{	GPT12_T2, FgptDevideBy8_00, IndividualPrescale_011, TimerMode_000, CountDirUP, InputTxUDE_Disconnect, AuxControlBySoftware, AuxIntEnable, CoreGptOverFlowDisable, CoreGptToggleDisable, 3036,					 ModuleControlEnable, SleepModeRequestDisable, 	cpu0},
+//{	GPT12_T2, FgptDevideBy8_00, IndividualPrescale_011, TimerMode_000, CountDirUP, InputTxUDE_Disconnect, AuxControlBySoftware, AuxIntEnable, CoreGptOverFlowDisable, CoreGptToggleDisable, 3036,					 ModuleControlEnable, SleepModeRequestDisable, 	cpu0},
+{	GPT12_T2, FgptDevideBy8_00, IndividualPrescale_000, TimerMode_000, CountDirUP, InputTxUDE_Disconnect, AuxControlBySoftware, AuxIntEnable, CoreGptOverFlowDisable, CoreGptToggleDisable, 64286,			ModuleControlEnable, SleepModeRequestDisable, 	cpu0},
 {	GPT12_T3, FgptDevideBy8_00, IndividualPrescale_011, TimerMode_000, CountDirUP, InputTxUDE_Disconnect, AuxControlBySoftware, AuxIntEnable, CoreGptOverFlowDisable, CoreGptToggleDisable, 3036,					 ModuleControlEnable, SleepModeRequestDisable, 	cpu0},
 {	GPT12_T4, FgptDevideBy8_00, IndividualPrescale_000, TimerMode_000, CountDirUP, InputTxUDE_Disconnect, AuxControlBySoftware, AuxIntEnable, CoreGptOverFlowDisable, CoreGptToggleDisable, GPT__DefaultReloadValue, ModuleControlEnable, SleepModeRequestDisable, 	cpu0},
 };
