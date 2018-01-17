@@ -38,37 +38,98 @@
 #include "IfxSrc_reg.h"
 #include "IfxAsclin_reg.h"
 
-volatile uint8_t test = 0xFF;
-uint16_t counter = 0;
+uint8_t test = 0xFF;
+uint64_t countingTimer;
 
+#define BUFFER_SIZE 500
 
-void UART_RX_Isr(int inputChannel)
+typedef enum
 {
-	// Echoing back the received byte
-	MODULE_ASCLIN2.FLAGSCLEAR.B.RFLC = 1;
-	UART_ReadData(inputChannel, &test);
-	UART_WriteData(inputChannel, test);
+	TEST_RUN,
+	TEST_FINISHED,
+	TEST_STOPPED
+} testStatus_t;
 
+typedef enum
+{
+	TEST_FAILED_TIME,
+	TEST_FAILED_CORRUPT,
+	TEST_PASS
+} testResult_t;
+
+volatile testStatus_t testStatus;
+
+unsigned char sendBuffer[BUFFER_SIZE];
+unsigned char receiveBuffer[BUFFER_SIZE];
+
+volatile unsigned int sendIndex;
+volatile unsigned int receiveIndex;
+
+void resetTimer()
+{
+	countingTimer = 0;
 }
 
-void UART_TX_Isr(int inputChannel)
+uint64_t getTimer()
+{
+	return countingTimer;
+}
+
+
+void TX_UART_RX_Isr(int inputChannel)
+{
+	MODULE_ASCLIN2.FLAGSCLEAR.B.RFLC = 1;
+	// Read the byte anyway
+	UART_ReadData(inputChannel, &test);
+}
+
+void TX_UART_TX_Isr(int inputChannel)
 {
 	MODULE_ASCLIN2.FLAGSCLEAR.B.TFLC = 1;
+}
+
+
+void RX_UART_RX_Isr(int inputChannel)
+{
+	// Echoing back the received byte
+	MODULE_ASCLIN3.FLAGSCLEAR.B.RFLC = 1;
+	UART_ReadData(inputChannel, &(receiveBuffer[receiveIndex]));
+	resetTimer();
+	if (receiveBuffer[receiveIndex] != sendBuffer[receiveIndex])
+	{
+		testStatus = TEST_STOPPED;
+	}
+	else if (receiveIndex < (BUFFER_SIZE - 1))
+	{
+		++receiveIndex;
+	}
+	else
+	{
+		testStatus = TEST_FINISHED;
+		receiveIndex = 0;
+	}
+}
+
+void RX_UART_TX_Isr(int inputChannel)
+{
+	MODULE_ASCLIN3.FLAGSCLEAR.B.TFLC = 1;
 }
 
 void Sample_Timer_Isr(int inputChannel)
 {
 	GPT12_Reload(GPT12_T2);
-	if (counter >= 19)
+	countingTimer++;
+	if ((testStatus == TEST_RUN) && (sendIndex <= (BUFFER_SIZE - 1)))
 	{
-		PORTPIN_toggle(Port13_Pin0);
-		counter = 0;
+		if (UART_WriteData(uart4, sendBuffer[sendIndex]) == RC_SUCCESS)
+		{
+			++sendIndex;
+		}
 	}
 	else
 	{
-		++counter;
+		//Do nothing
 	}
-	//UART_WriteData(uart4, 'a');
 }
 
 void UART_Err_Isr(int inputChannel)
@@ -77,6 +138,67 @@ void UART_Err_Isr(int inputChannel)
 	MODULE_ASCLIN2.FLAGSCLEAR.B.RFUC = 1;
 }
 
+
+testResult_t runOneTest()
+{
+	resetTest();
+	testStatus = TEST_RUN;
+	while (getTimer() < 100000)
+	{
+		if (testStatus == TEST_FINISHED)
+		{
+			testStatus = TEST_STOPPED;
+			return TEST_PASS;
+		}
+		else if (testStatus == TEST_STOPPED)
+		{
+			testStatus = TEST_STOPPED;
+			return TEST_FAILED_CORRUPT;
+		}
+	}
+	testStatus = TEST_STOPPED;
+	return TEST_FAILED_TIME;
+}
+
+void runSeveralTest(uint32_t numberOfTests, uint32_t* numberOfTimeFails, uint32_t* numberOfCorruptions)
+{
+	uint32_t i = 0;
+	*numberOfCorruptions = 0;
+	*numberOfTimeFails = 0;
+	testResult_t singleTestResult;
+	for (i = 0; i < numberOfTests; i++)
+	{
+		singleTestResult = runOneTest();
+		if (singleTestResult == TEST_FAILED_CORRUPT)
+		{
+			++(*numberOfCorruptions);
+		}
+		else if (singleTestResult == TEST_FAILED_TIME)
+		{
+			++(*numberOfTimeFails);
+		}
+	}
+}
+
+void resetTest()
+{
+	testStatus = TEST_STOPPED;
+	resetTimer();
+	while (getTimer() < 1000);
+	resetTimer();
+	sendIndex = 0;
+	receiveIndex = 0;
+	memset(receiveBuffer, 0, BUFFER_SIZE);
+}
+
+void fillSendBuffer()
+{
+	unsigned int i = 0;
+	for (i = 0; i < (BUFFER_SIZE - 1); i++)
+	{
+		sendBuffer[i] = i/255;
+	}
+}
 
 int main(){
 
@@ -110,21 +232,21 @@ int main(){
 		if( RC_SUCCESS != QSPI_module_init(QSPI2,NULL))
 			DET_stop(AUTOCORE, QSPI_MODULE_INIT, 0);
 
-		//UART_WriteData(uart4, 'a');
-		//UART Init
 		UART_init();
 
-		ISR_Install_preOS(&SRC_ASCLIN2RX, UART_RX_Isr, cpu0, 34, uart4);
-		ISR_Install_preOS(&SRC_ASCLIN2TX, UART_TX_Isr, cpu0, 35, uart4);
-		ISR_Install_preOS(&SRC_GPT120T2, Sample_Timer_Isr, cpu0, 32, 0);
+		ISR_Install_preOS(&SRC_ASCLIN2RX, TX_UART_RX_Isr, cpu0, 32, uart4);
+		ISR_Install_preOS(&SRC_ASCLIN2TX, TX_UART_TX_Isr, cpu0, 33, uart4);
+
+		ISR_Install_preOS(&SRC_ASCLIN3RX, RX_UART_RX_Isr, cpu0, 34, uart6);
+		ISR_Install_preOS(&SRC_ASCLIN3TX, RX_UART_TX_Isr, cpu0, 35, uart6);
+
+		ISR_Install_preOS(&SRC_GPT120T2, Sample_Timer_Isr, cpu0, 31, 0);
 		GPT12_StartStop(GPT12_T2,Start);
 		//ISR_Install_preOS(&SRC_ASCLIN2ERR, UART_Err_Isr, cpu0, 33, 10);
 		SYSTEM_EnableInterrupts();
 		//CANopen_Init which will initialize CAN
 		//if(CANopen_Init()!=RC_SUCCESS)
 		//	DET_stop(AUTOCORE,CAN_INIT, 0);
-
-
 
 		//Initialize core synchronization
 		SYNC_Init();
