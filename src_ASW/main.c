@@ -39,7 +39,10 @@
 #include "IfxAsclin_reg.h"
 
 uint8_t test = 0xFF;
-uint64_t countingTimer;
+volatile uint64_t countingTimer;
+
+volatile uint32_t corruptFails;
+volatile uint32_t timeFails;
 
 #define BUFFER_SIZE 500
 
@@ -143,7 +146,7 @@ testResult_t runOneTest()
 {
 	resetTest();
 	testStatus = TEST_RUN;
-	while (getTimer() < 100000)
+	while (getTimer() < 20000)
 	{
 		if (testStatus == TEST_FINISHED)
 		{
@@ -201,6 +204,7 @@ void fillSendBuffer()
 }
 
 int main(){
+	volatile uint32_t numberOfTests = 10;
 
 	// Storage for the result of PxInit
 	PxError_t 	PxInit_ret = PXERR_NOERROR;
@@ -247,7 +251,8 @@ int main(){
 		//CANopen_Init which will initialize CAN
 		//if(CANopen_Init()!=RC_SUCCESS)
 		//	DET_stop(AUTOCORE,CAN_INIT, 0);
-
+		fillSendBuffer();
+		runSeveralTest(numberOfTests, &timeFails, &corruptFails);
 		//Initialize core synchronization
 		SYNC_Init();
 		_nop();
