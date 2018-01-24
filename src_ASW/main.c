@@ -41,15 +41,15 @@
 uint8_t test = 0xFF;
 volatile uint64_t countingTimer;
 
-volatile uint32_t corruptFails;
-volatile uint32_t timeFails;
+volatile uint32_t corruptedPackets;
+volatile uint32_t timedOutPackets;
 
 #define BUFFER_SIZE 500
 
 typedef enum
 {
 	TEST_RUN,
-	TEST_FINISHED,
+	TEST_RECV_PASSED,
 	TEST_STOPPED
 } testStatus_t;
 
@@ -108,7 +108,7 @@ void RX_UART_RX_Isr(int inputChannel)
 	}
 	else
 	{
-		testStatus = TEST_FINISHED;
+		testStatus = TEST_RECV_PASSED;
 		receiveIndex = 0;
 	}
 }
@@ -148,7 +148,7 @@ testResult_t runOneTest()
 	testStatus = TEST_RUN;
 	while (getTimer() < 20000)
 	{
-		if (testStatus == TEST_FINISHED)
+		if (testStatus == TEST_RECV_PASSED)
 		{
 			testStatus = TEST_STOPPED;
 			return TEST_PASS;
@@ -199,7 +199,7 @@ void fillSendBuffer()
 	unsigned int i = 0;
 	for (i = 0; i < (BUFFER_SIZE - 1); i++)
 	{
-		sendBuffer[i] = i/255;
+		sendBuffer[i] = i%255;
 	}
 }
 
@@ -252,7 +252,7 @@ int main(){
 		//if(CANopen_Init()!=RC_SUCCESS)
 		//	DET_stop(AUTOCORE,CAN_INIT, 0);
 		fillSendBuffer();
-		runSeveralTest(numberOfTests, &timeFails, &corruptFails);
+		runSeveralTest(numberOfTests, &timedOutPackets, &corruptedPackets);
 		//Initialize core synchronization
 		SYNC_Init();
 		_nop();
