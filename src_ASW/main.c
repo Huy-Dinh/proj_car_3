@@ -85,7 +85,8 @@ uint64_t getTimer()
 
 void commonDispatcher(int input)
 {
-	Cdisptab[CPU0_ICR.B.PIPN].irq_handler(10);
+	int argument = Cdisptab[CPU0_ICR.B.PIPN].hnd_arg;
+	Cdisptab[CPU0_ICR.B.PIPN].irq_handler(argument);
 }
 
 void TX_UART_RX_Isr(int inputChannel)

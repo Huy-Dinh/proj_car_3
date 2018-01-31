@@ -103,11 +103,11 @@ SECTIONS
 		__INIT_TRAPTAB_END = . ;
   	} > mem_flash0
   	
-  	.interrupttable_init_out (0x800023F9)  : /*0x80003FE0 */ 
+  	.interrupttable_init_out (0x80003FE0)  : /*0x80003FE0 */ 
   	{
   		__INIT_INT_TAB_BEGIN = . ;
 		KEEP (*(.interrupttable_init_in));
-		. = ALIGN(1) ;
+		. = ALIGN(8) ;
 		__INIT_INT_TAB_END = . ;
   	} > mem_flash0
   
