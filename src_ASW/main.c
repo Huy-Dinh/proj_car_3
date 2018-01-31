@@ -37,6 +37,11 @@
 #include "register.h"
 #include "IfxSrc_reg.h"
 #include "IfxAsclin_reg.h"
+#include "interrupt_init.h"
+#include "IfxCpu_reg.h"
+#include "IfxCpu_regdef.h"
+
+extern IRQ_hdl_t Cdisptab[MAX_INTRS];
 
 uint8_t test = 0xFF;
 volatile uint64_t countingTimer;
@@ -78,6 +83,10 @@ uint64_t getTimer()
 	return countingTimer;
 }
 
+void commonDispatcher(int input)
+{
+	Cdisptab[CPU0_ICR.B.PIPN].irq_handler(10);
+}
 
 void TX_UART_RX_Isr(int inputChannel)
 {
@@ -237,6 +246,9 @@ int main(){
 			DET_stop(AUTOCORE, QSPI_MODULE_INIT, 0);
 
 		UART_init();
+
+		Cdisptab[0].irq_handler=commonDispatcher;
+		Cdisptab[0].hnd_arg=1;
 
 		ISR_Install_preOS(&SRC_ASCLIN2RX, TX_UART_RX_Isr, cpu0, 32, uart4);
 		ISR_Install_preOS(&SRC_ASCLIN2TX, TX_UART_TX_Isr, cpu0, 33, uart4);

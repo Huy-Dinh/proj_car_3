@@ -324,23 +324,20 @@ IRQ_hdl_t Cdisptab[MAX_INTRS]={
 
 asm ("						\n\
 	.section .interrupttable_init_in, \"ax\", @progbits	\n\
-	.align 13				\n\
 	.globl TriCore_int_table		\n\
 TriCore_int_table:				\n\
 ");
-	DSYNC
-asm ("						\n\
-	debug		# int 0			\n\
-	.align 5				\n\
-	.globl ___interrupt_1			\n\
-___interrupt_1:					\n\
-");
-	DSYNC
-asm ("						\n\
-	# enable	# int 1			\n\
-	j __interrupt_1				\n\
-	.align 5				\n\
-");
+asm (".globl __commonDispatcher");		\
+asm ("__commonDispatcher:");		\
+asm ("bisr 0");				\
+asm ("movh.a %a15,hi:Cdisptab+8*0");	\
+asm ("lea %a15,[%a15]lo:Cdisptab+8*0");	\
+asm ("ld.a %a14,[%a15+]");			\
+asm ("ld.w %d4,[%a15]");			\
+asm ("calli %a14");				\
+asm ("rslcx");				\
+asm ("rfe");				\
+asm (".align 5");
 
 #if defined(ERRATA_CPU13) || defined(ERRATA_DMI12)
 # define DEFINE_INT(i)				\
