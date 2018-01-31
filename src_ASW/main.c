@@ -40,6 +40,7 @@
 #include "interrupt_init.h"
 #include "IfxCpu_reg.h"
 #include "IfxCpu_regdef.h"
+#include <machine/intrinsics.h>
 
 extern IRQ_hdl_t Cdisptab[MAX_INTRS];
 
@@ -82,11 +83,13 @@ uint64_t getTimer()
 {
 	return countingTimer;
 }
-
+Ifx_CPU_ICR IcrValue;
 void commonDispatcher(int input)
 {
-	int argument = Cdisptab[CPU0_ICR.B.PIPN].hnd_arg;
-	Cdisptab[CPU0_ICR.B.PIPN].irq_handler(argument);
+	IcrValue = (Ifx_CPU_ICR) __MFCR(CPU_ICR);
+
+	int argument = Cdisptab[IcrValue.B.PIPN].hnd_arg;
+	Cdisptab[IcrValue.B.PIPN].irq_handler(argument);
 }
 
 void TX_UART_RX_Isr(int inputChannel)
