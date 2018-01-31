@@ -4,8 +4,7 @@
  * \version	0.1
  *
  *
- * \copyright Copyright ©2016
- * Department of electrical engineering and information technology, Hochschule Darmstadt - University of applied sciences (h_da). All Rights Reserved.
+ * \copyright Copyright ï¿½201 * Department of electrical engineering and information technology, Hochschule Darmstadt - University of applied sciences (h_da). All Rights Reserved.
  * Permission to use, copy, modify, and distribute this software and its documentation for educational, and research purposes in the context of non-commercial
  * (unless permitted by h_da) and official h_da projects, is hereby granted for enrolled students of h_da, provided that the above copyright notice,
  * this paragraph and the following paragraph appear in all copies, modifications, and distributions.
@@ -87,9 +86,7 @@ Ifx_CPU_ICR IcrValue;
 void commonDispatcher(int input)
 {
 	IcrValue = (Ifx_CPU_ICR) __MFCR(CPU_ICR);
-
-	int argument = Cdisptab[IcrValue.B.PIPN].hnd_arg;
-	Cdisptab[IcrValue.B.PIPN].irq_handler(argument);
+	Cdisptab[IcrValue.B.PIPN].irq_handler(Cdisptab[IcrValue.B.PIPN].hnd_arg);
 }
 
 void TX_UART_RX_Isr(int inputChannel)
@@ -200,7 +197,11 @@ void resetTest()
 {
 	testStatus = TEST_STOPPED;
 	resetTimer();
-	while (getTimer() < 1000);
+	while (getTimer() < 2000);
+	ASCLIN2_RXFIFOCON.B.FLUSH = 1;
+	ASCLIN3_RXFIFOCON.B.FLUSH = 1;
+	ASCLIN2_TXFIFOCON.B.FLUSH = 1;
+	ASCLIN3_TXFIFOCON.B.FLUSH = 1;
 	resetTimer();
 	sendIndex = 0;
 	receiveIndex = 0;
