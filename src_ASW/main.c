@@ -53,16 +53,12 @@ volatile uint32_t timedOutPackets;
 
 typedef enum
 {
-	TEST_RUN,
-	TEST_RECV_PASSED,
-	TEST_STOPPED
+	TEST_RUN, TEST_RECV_PASSED, TEST_STOPPED
 } testStatus_t;
 
 typedef enum
 {
-	TEST_FAILED_TIME,
-	TEST_FAILED_CORRUPT,
-	TEST_PASS
+	TEST_FAILED_TIME, TEST_FAILED_CORRUPT, TEST_PASS
 } testResult_t;
 
 volatile testStatus_t testStatus;
@@ -83,10 +79,15 @@ uint64_t getTimer()
 	return countingTimer;
 }
 Ifx_CPU_ICR IcrValue;
-void commonDispatcher(int input)
+
+void commonDispatcher()
 {
 	IcrValue = (Ifx_CPU_ICR) __MFCR(CPU_ICR);
+	asm ("bisr 0");
+	IcrValue = (Ifx_CPU_ICR) __MFCR(CPU_ICR);
 	Cdisptab[IcrValue.B.PIPN].irq_handler(Cdisptab[IcrValue.B.PIPN].hnd_arg);
+	asm ("rslcx");
+	asm ("rfe");
 }
 
 void TX_UART_RX_Isr(int inputChannel)
@@ -100,7 +101,6 @@ void TX_UART_TX_Isr(int inputChannel)
 {
 	MODULE_ASCLIN2.FLAGSCLEAR.B.TFLC = 1;
 }
-
 
 void RX_UART_RX_Isr(int inputChannel)
 {
@@ -151,7 +151,6 @@ void UART_Err_Isr(int inputChannel)
 	MODULE_ASCLIN2.FLAGSCLEAR.B.RFUC = 1;
 }
 
-
 testResult_t runOneTest()
 {
 	resetTest();
@@ -173,7 +172,8 @@ testResult_t runOneTest()
 	return TEST_FAILED_TIME;
 }
 
-void runSeveralTest(uint32_t numberOfTests, uint32_t* numberOfTimeFails, uint32_t* numberOfCorruptions)
+void runSeveralTest(uint32_t numberOfTests, uint32_t* numberOfTimeFails,
+		uint32_t* numberOfCorruptions)
 {
 	uint32_t i = 0;
 	*numberOfCorruptions = 0;
@@ -197,7 +197,8 @@ void resetTest()
 {
 	testStatus = TEST_STOPPED;
 	resetTimer();
-	while (getTimer() < 2000);
+	while (getTimer() < 2000)
+		;
 	ASCLIN2_RXFIFOCON.B.FLUSH = 1;
 	ASCLIN3_RXFIFOCON.B.FLUSH = 1;
 	ASCLIN2_TXFIFOCON.B.FLUSH = 1;
@@ -213,21 +214,23 @@ void fillSendBuffer()
 	unsigned int i = 0;
 	for (i = 0; i < (BUFFER_SIZE - 1); i++)
 	{
-		sendBuffer[i] = i%255;
+		sendBuffer[i] = i % 255;
 	}
 }
 
-int main(){
+int main()
+{
 	volatile uint32_t numberOfTests = 10;
 
 	// Storage for the result of PxInit
-	PxError_t 	PxInit_ret = PXERR_NOERROR;
+	PxError_t PxInit_ret = PXERR_NOERROR;
 
 	//storage for the current CPU-ID
-	CpuId_t 	CoreID = SYSTEM_GetCoreId();
+	CpuId_t CoreID = SYSTEM_GetCoreId();
 
 	// Core 0 performs driver initialization
-	if(CoreID == cpu0){
+	if (CoreID == cpu0)
+	{
 
 		//GPIO Init
 		PORT_Init();
@@ -236,24 +239,21 @@ int main(){
 		DET_TIME_init();
 
 		//check integrity of system configuration
-		if(CFG_check()!=RC_SUCCESS)
-			DET_stop(AUTOCORE,CFG_CHECK, 0);
+		if (CFG_check() != RC_SUCCESS)
+			DET_stop(AUTOCORE, CFG_CHECK, 0);
 
 		//system Init (PLL setup, DTS init and TLF shutdown)
-		if(SYSTEM_Init()!=RC_SUCCESS)
-			DET_stop(AUTOCORE,SYSTEM_INIT, 0);
+		if (SYSTEM_Init() != RC_SUCCESS)
+			DET_stop(AUTOCORE, SYSTEM_INIT, 0);
 
 		//SPI Init
-		if( RC_SUCCESS != QSPI_module_init(QSPI0,NULL))
+		if (RC_SUCCESS != QSPI_module_init(QSPI0, NULL))
 			DET_stop(AUTOCORE, QSPI_MODULE_INIT, 0);
 
-		if( RC_SUCCESS != QSPI_module_init(QSPI2,NULL))
+		if (RC_SUCCESS != QSPI_module_init(QSPI2, NULL))
 			DET_stop(AUTOCORE, QSPI_MODULE_INIT, 0);
 
 		UART_init();
-
-		Cdisptab[0].irq_handler=commonDispatcher;
-		Cdisptab[0].hnd_arg=1;
 
 		ISR_Install_preOS(&SRC_ASCLIN2RX, TX_UART_RX_Isr, cpu0, 32, uart4);
 		ISR_Install_preOS(&SRC_ASCLIN2TX, TX_UART_TX_Isr, cpu0, 33, uart4);
@@ -262,7 +262,7 @@ int main(){
 		ISR_Install_preOS(&SRC_ASCLIN3TX, RX_UART_TX_Isr, cpu0, 35, uart6);
 
 		ISR_Install_preOS(&SRC_GPT120T2, Sample_Timer_Isr, cpu0, 31, 0);
-		GPT12_StartStop(GPT12_T2,Start);
+		GPT12_StartStop(GPT12_T2, Start);
 		//ISR_Install_preOS(&SRC_ASCLIN2ERR, UART_Err_Isr, cpu0, 33, 10);
 		SYSTEM_EnableInterrupts();
 		//CANopen_Init which will initialize CAN
@@ -276,8 +276,6 @@ int main(){
 
 	}
 
-
-
 	//TLF DEVELOPMENT
 	//For now, we stop here, no OS and no cores are started
 	//The TFT Backlight is turned off. Port_cfg.cpp Port 20 Pin 13
@@ -287,32 +285,31 @@ int main(){
 //		test02();
 //	}
 
-
 	//Initialize PxROS
-	switch(CoreID)
+	switch (CoreID)
 	{
-		case cpu0:
-			//Initialize PXROS on core0
-			//PxInit_ret = PxInit(InitSpecsArray,3);
-			break;
+	case cpu0:
+		//Initialize PXROS on core0
+		//PxInit_ret = PxInit(InitSpecsArray,3);
+		break;
 
-		case cpu1:
-			//Initialize PXROS on core1
-			//PxInit_ret = PxInit(InitSpecsArray,3);
-			break;
+	case cpu1:
+		//Initialize PXROS on core1
+		//PxInit_ret = PxInit(InitSpecsArray,3);
+		break;
 
-		case cpu2:
-			//Initialize PXROS on core2
-			//PxInit_ret = PxInit(InitSpecsArray,3);
-			break;
+	case cpu2:
+		//Initialize PXROS on core2
+		//PxInit_ret = PxInit(InitSpecsArray,3);
+		break;
 	}
 
 	//in case PxROS was not initialized, the return value will be processed by DET
 	if (PxInit_ret != PXERR_NOERROR)
-		DET_stop(CoreID,PXBOOTSYNC1,PxInit_ret);
+		DET_stop(CoreID, PXBOOTSYNC1, PxInit_ret);
 
 	//this line should be unreachable, but you never know...
-	while(1)
+	while (1)
 		asm("NOP");
 
 	//as the return type of main is int, we have to return something. The result is not evaluated.
