@@ -155,6 +155,7 @@ testResult_t runOneTest()
 {
 	resetTest();
 	testStatus = TEST_RUN;
+	GPT12_StartStop(GPT12_T2, Start);
 	while (getTimer() < 20000)
 	{
 		if (testStatus == TEST_RECV_PASSED)
@@ -191,19 +192,17 @@ void runSeveralTest(uint32_t numberOfTests, uint32_t* numberOfTimeFails,
 			++(*numberOfTimeFails);
 		}
 	}
+	GPT12_StartStop(GPT12_T2, Stop);
 }
 
 void resetTest()
 {
 	testStatus = TEST_STOPPED;
+	GPT12_StartStop(GPT12_T2, Stop);
 	resetTimer();
-	while (getTimer() < 2000)
-		;
 	ASCLIN2_RXFIFOCON.B.FLUSH = 1;
 	ASCLIN3_RXFIFOCON.B.FLUSH = 1;
 	ASCLIN2_TXFIFOCON.B.FLUSH = 1;
-	ASCLIN3_TXFIFOCON.B.FLUSH = 1;
-	resetTimer();
 	sendIndex = 0;
 	receiveIndex = 0;
 	memset(receiveBuffer, 0, BUFFER_SIZE);
@@ -262,7 +261,7 @@ int main()
 		ISR_Install_preOS(&SRC_ASCLIN3TX, RX_UART_TX_Isr, cpu0, 35, uart6);
 
 		ISR_Install_preOS(&SRC_GPT120T2, Sample_Timer_Isr, cpu0, 31, 0);
-		GPT12_StartStop(GPT12_T2, Start);
+		GPT12_StartStop(GPT12_T2, Stop);
 		//ISR_Install_preOS(&SRC_ASCLIN2ERR, UART_Err_Isr, cpu0, 33, 10);
 		SYSTEM_EnableInterrupts();
 		//CANopen_Init which will initialize CAN
