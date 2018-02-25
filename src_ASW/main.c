@@ -43,6 +43,11 @@
 
 extern IRQ_hdl_t Cdisptab[MAX_INTRS];
 
+
+volatile uint64_t RxIsrCount = 0;
+volatile uint64_t TxIsrCount = 0;
+volatile uint64_t TmIsrCount = 0;
+
 uint8_t test = 0xFF;
 volatile uint64_t countingTimer;
 
@@ -82,10 +87,12 @@ Ifx_CPU_ICR IcrValue;
 
 void commonDispatcher()
 {
+	//asm ("bisr 0");
 	IcrValue = (Ifx_CPU_ICR) __MFCR(CPU_ICR);
-	asm ("bisr 0");
-	IcrValue = (Ifx_CPU_ICR) __MFCR(CPU_ICR);
-	Cdisptab[IcrValue.B.PIPN].irq_handler(Cdisptab[IcrValue.B.PIPN].hnd_arg);
+	if (Cdisptab[IcrValue.B.PIPN].irq_handler != NULL)
+	{
+		Cdisptab[IcrValue.B.PIPN].irq_handler(Cdisptab[IcrValue.B.PIPN].hnd_arg);
+	}
 	asm ("rslcx");
 	asm ("rfe");
 }
@@ -99,6 +106,7 @@ void TX_UART_RX_Isr(int inputChannel)
 
 void TX_UART_TX_Isr(int inputChannel)
 {
+	++TxIsrCount;
 	MODULE_ASCLIN2.FLAGSCLEAR.B.TFLC = 1;
 }
 
@@ -106,13 +114,15 @@ void RX_UART_RX_Isr(int inputChannel)
 {
 	// Echoing back the received byte
 	MODULE_ASCLIN3.FLAGSCLEAR.B.RFLC = 1;
+	++RxIsrCount;
 	UART_ReadData(inputChannel, &(receiveBuffer[receiveIndex]));
 	resetTimer();
-	if (receiveBuffer[receiveIndex] != sendBuffer[receiveIndex])
-	{
-		testStatus = TEST_STOPPED;
-	}
-	else if (receiveIndex < (BUFFER_SIZE - 1))
+//	if (receiveBuffer[receiveIndex] != sendBuffer[receiveIndex])
+//	{
+//		testStatus = TEST_STOPPED;
+//	}
+//	else
+	if (receiveIndex < (BUFFER_SIZE - 1))
 	{
 		++receiveIndex;
 	}
@@ -131,6 +141,7 @@ void RX_UART_TX_Isr(int inputChannel)
 void Sample_Timer_Isr(int inputChannel)
 {
 	GPT12_Reload(GPT12_T2);
+	++TmIsrCount;
 	countingTimer++;
 	if ((testStatus == TEST_RUN) && (sendIndex <= (BUFFER_SIZE - 1)))
 	{
@@ -219,7 +230,7 @@ void fillSendBuffer()
 
 int main()
 {
-	volatile uint32_t numberOfTests = 10;
+	volatile uint32_t numberOfTests = 3;
 
 	// Storage for the result of PxInit
 	PxError_t PxInit_ret = PXERR_NOERROR;
