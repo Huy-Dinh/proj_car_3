@@ -93,8 +93,6 @@ void commonDispatcher()
 	{
 		Cdisptab[IcrValue.B.PIPN].irq_handler(Cdisptab[IcrValue.B.PIPN].hnd_arg);
 	}
-	asm ("rslcx");
-	asm ("rfe");
 }
 
 void TX_UART_RX_Isr(int inputChannel)
@@ -114,22 +112,27 @@ void RX_UART_RX_Isr(int inputChannel)
 {
 	// Echoing back the received byte
 	MODULE_ASCLIN3.FLAGSCLEAR.B.RFLC = 1;
-	++RxIsrCount;
-	UART_ReadData(inputChannel, &(receiveBuffer[receiveIndex]));
-	resetTimer();
-//	if (receiveBuffer[receiveIndex] != sendBuffer[receiveIndex])
-//	{
-//		testStatus = TEST_STOPPED;
-//	}
-//	else
-	if (receiveIndex < (BUFFER_SIZE - 1))
+	while (MODULE_ASCLIN3.RXFIFOCON.B.FILL > 0)
 	{
-		++receiveIndex;
-	}
-	else
-	{
-		testStatus = TEST_RECV_PASSED;
-		receiveIndex = 0;
+		if (UART_ReadData(inputChannel, &(receiveBuffer[receiveIndex])) == RC_SUCCESS)
+		{
+			++RxIsrCount;
+			resetTimer();
+			if (receiveBuffer[receiveIndex] != sendBuffer[receiveIndex])
+			{
+				testStatus = TEST_STOPPED;
+			}
+			else
+			if (receiveIndex < (BUFFER_SIZE - 1))
+			{
+				++receiveIndex;
+			}
+			else
+			{
+				testStatus = TEST_RECV_PASSED;
+				receiveIndex = 0;
+			}
+		}
 	}
 }
 
@@ -161,6 +164,18 @@ void UART_Err_Isr(int inputChannel)
 	MODULE_ASCLIN2.FLAGSCLEAR.B.FEC = 1;
 	MODULE_ASCLIN2.FLAGSCLEAR.B.RFUC = 1;
 }
+volatile int failedAt = 0;
+
+int memcompare(char * a, char * b, int size)
+{
+	int i = 0;
+	for (i = 0; i < size; i++)
+	{
+		if (a[i] != b[i])
+			return i;
+	}
+	return -1;
+}
 
 testResult_t runOneTest()
 {
@@ -172,6 +187,7 @@ testResult_t runOneTest()
 		if (testStatus == TEST_RECV_PASSED)
 		{
 			testStatus = TEST_STOPPED;
+			failedAt = memcompare(receiveBuffer, sendBuffer, BUFFER_SIZE);
 			return TEST_PASS;
 		}
 		else if (testStatus == TEST_STOPPED)
@@ -230,7 +246,7 @@ void fillSendBuffer()
 
 int main()
 {
-	volatile uint32_t numberOfTests = 3;
+	volatile uint32_t numberOfTests = 20;
 
 	// Storage for the result of PxInit
 	PxError_t PxInit_ret = PXERR_NOERROR;

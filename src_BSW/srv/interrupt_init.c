@@ -325,16 +325,29 @@ TriCore_int_table:				\n\
 DSYNC
 asm ("            \n\
 .align 5        \n\
-.globl ___interrupt_1      \n\
-___interrupt_1:          \n\
+.globl ___commonDispatcher      \n\
+___commonDispatcher:          \n\
 "); 
 DSYNC
-asm ("            \n\ 
-# enable  # int 1      \n\
-	bisr 0 \n\
-	j commonDispatcher        \n\
-.align 5        \n\
-");
+asm ("\n");
+asm ("# enable  # int 1");
+asm	("bisr 0");
+//	// Load upper word of commonDispatcher to A15
+//asm ("movh.a %a15,hi:commonDispatcher");
+//	// Compute the absolute (effective) address defined by the addressing mode and put the
+//	// result in address register A15
+//asm("lea %a15,[%a15]lo:commonDispatcher");
+//	// Load word to address register A14
+//asm("ld.a %a14,[%a15+]");
+//	// Load word contents of the memory location specified by the addressing mode into data
+//	// register d4
+//asm("ld.w %d4,[%a15]");
+//	// Call the commonDispatcher
+//asm("calli %a14");
+asm("calla commonDispatcher");
+asm("rslcx");
+asm("rfe");
+asm (".align 5");
 
 asm (".text");
 #if defined(ERRATA_CPU13) || defined(ERRATA_DMI12)
