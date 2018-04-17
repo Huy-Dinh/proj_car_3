@@ -6,11 +6,6 @@ elf/
 iROM_Car_3/
 makefile.init
 makefile.defs
-ld/userSections_iROM.ld
-ld/pxros.ld
-ld/pxros-core.ld
-ld/memory-tc29xx.x
-ld/main.ld
 iROM_Car_4/src_BSW/startup/subdir.mk
 iROM_Car_4/src_BSW/startup/core_startup.o
 iROM_Car_4/src_BSW/startup/core_startup.d

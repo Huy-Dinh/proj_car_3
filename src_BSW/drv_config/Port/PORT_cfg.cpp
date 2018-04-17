@@ -14,7 +14,7 @@
  *	- 0.1 08.06.15 Barth
  *		- Initial version
  *
- * \copyright Copyright ©2016
+ * \copyright Copyright ï¿½2016
  * Department of electrical engineering and information technology, Hochschule Darmstadt - University of applied sciences (h_da). All Rights Reserved.
  * Permission to use, copy, modify, and distribute this software and its documentation for educational, and research purposes in the context of non-commercial
  * (unless permitted by h_da) and official h_da projects, is hereby granted for enrolled students of h_da, provided that the above copyright notice,
@@ -44,7 +44,7 @@ portPin_cfg_t const PORT_config[DERIVATE_NUM_PINS] =
 		//Port 00
 
 #if (ASCLIN3 == UART6)
-		{(Ifx_P *)&MODULE_P00, 0,	_outputPushPullAlt2, 				PES_inactive,		_cleared, cmosAutomotiveSpeed1},					//Port 00 Pin 0
+		{(Ifx_P *)&MODULE_P00, 0,	_outputPushPullAlt3, 				PES_inactive,		_cleared, cmosAutomotiveSpeed1},					//Port 00 Pin 0
 #else
 		{(Ifx_P *)&MODULE_P00, 0,	PORT_DEFAULT_MODE, 					PES_inactive,		_cleared, cmosAutomotiveSpeed4},					//Port 00 Pin 0
 #endif
