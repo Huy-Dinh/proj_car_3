@@ -330,20 +330,8 @@ ___commonDispatcher:          \n\
 "); 
 DSYNC
 asm ("\n");
-asm ("# enable  # int 1");
-asm	("bisr 0");
-//	// Load upper word of commonDispatcher to A15
-//asm ("movh.a %a15,hi:commonDispatcher");
-//	// Compute the absolute (effective) address defined by the addressing mode and put the
-//	// result in address register A15
-//asm("lea %a15,[%a15]lo:commonDispatcher");
-//	// Load word to address register A14
-//asm("ld.a %a14,[%a15+]");
-//	// Load word contents of the memory location specified by the addressing mode into data
-//	// register d4
-//asm("ld.w %d4,[%a15]");
-//	// Call the commonDispatcher
-//asm("calli %a14");
+asm	("enable");
+asm ("SVLCX");
 asm("calla commonDispatcher");
 asm("rslcx");
 asm("rfe");
