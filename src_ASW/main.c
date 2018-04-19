@@ -87,11 +87,10 @@ Ifx_CPU_ICR IcrValue;
 
 void commonDispatcher()
 {
-	//asm ("bisr 0");
 	IcrValue = (Ifx_CPU_ICR) __MFCR(CPU_ICR);
-	if (Cdisptab[IcrValue.B.PIPN].irq_handler != NULL)
+	if (Cdisptab[IcrValue.B.CCPN].irq_handler != NULL)
 	{
-		Cdisptab[IcrValue.B.PIPN].irq_handler(Cdisptab[IcrValue.B.PIPN].hnd_arg);
+		Cdisptab[IcrValue.B.CCPN].irq_handler(Cdisptab[IcrValue.B.CCPN].hnd_arg);
 	}
 }
 
@@ -104,19 +103,18 @@ void TX_UART_RX_Isr(int inputChannel)
 
 void TX_UART_TX_Isr(int inputChannel)
 {
-	++TxIsrCount;
+	//++TxIsrCount;
 	MODULE_ASCLIN2.FLAGSCLEAR.B.TFLC = 1;
 }
 
 void RX_UART_RX_Isr(int inputChannel)
 {
-	// Echoing back the received byte
+	++RxIsrCount;
 	MODULE_ASCLIN3.FLAGSCLEAR.B.RFLC = 1;
-	while (MODULE_ASCLIN3.RXFIFOCON.B.FILL > 0)
-	{
+	//while (MODULE_ASCLIN3.RXFIFOCON.B.FILL > 0)
+	//{
 		if (UART_ReadData(inputChannel, &(receiveBuffer[receiveIndex])) == RC_SUCCESS)
 		{
-			++RxIsrCount;
 			resetTimer();
 			if (receiveBuffer[receiveIndex] != sendBuffer[receiveIndex])
 			{
@@ -133,7 +131,7 @@ void RX_UART_RX_Isr(int inputChannel)
 				receiveIndex = 0;
 			}
 		}
-	}
+	//}
 }
 
 void RX_UART_TX_Isr(int inputChannel)
@@ -246,7 +244,7 @@ void fillSendBuffer()
 
 int main()
 {
-	volatile uint32_t numberOfTests = 20;
+	volatile uint32_t numberOfTests = 2;
 
 	// Storage for the result of PxInit
 	PxError_t PxInit_ret = PXERR_NOERROR;
@@ -288,12 +286,10 @@ int main()
 		ISR_Install_preOS(&SRC_ASCLIN3TX, RX_UART_TX_Isr, cpu0, 35, uart6);
 
 		ISR_Install_preOS(&SRC_GPT120T2, Sample_Timer_Isr, cpu0, 31, 0);
+
 		GPT12_StartStop(GPT12_T2, Stop);
-		//ISR_Install_preOS(&SRC_ASCLIN2ERR, UART_Err_Isr, cpu0, 33, 10);
 		SYSTEM_EnableInterrupts();
-		//CANopen_Init which will initialize CAN
-		//if(CANopen_Init()!=RC_SUCCESS)
-		//	DET_stop(AUTOCORE,CAN_INIT, 0);
+
 		fillSendBuffer();
 		runSeveralTest(numberOfTests, &timedOutPackets, &corruptedPackets);
 		//Initialize core synchronization
