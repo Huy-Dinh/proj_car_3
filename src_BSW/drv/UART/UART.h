@@ -113,8 +113,8 @@ typedef enum
  */
 typedef enum
 {
-	CsDisable = 0,
-	CsEnable
+	CtsDisable = 0,
+	CtsEnable
 } UART_CtsEnable_t;
 
 /** @HD: CTS Polarity configuration
