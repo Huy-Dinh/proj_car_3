@@ -322,16 +322,13 @@ asm ("						\n\
 	.globl TriCore_int_table		\n\
 TriCore_int_table:				\n\
 ");
-DSYNC
 asm ("            \n\
 .align 5        \n\
 .globl ___commonDispatcher      \n\
 ___commonDispatcher:          \n\
 "); 
-DSYNC
-asm ("\n");
 asm	("enable");
-asm ("SVLCX");
+asm ("svlcx");
 asm("calla commonDispatcher");
 asm("rslcx");
 asm("rfe");
