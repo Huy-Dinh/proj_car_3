@@ -404,16 +404,6 @@ typedef enum
     RxSel_h
 }RxSelect_t;
 
-
-/* @HD: CS multiplexer definition used in PinMaps
- */
-typedef enum
-{
-	CtsSel_a = 0x00,
-	CtsSel_b,
-	CtsSel_c,
-	CtsSel_d
-}CtsSelect_t;
 /*******************************************************************************
 **                      Global Function Declarations                          **
 *******************************************************************************/

@@ -123,7 +123,7 @@ typedef struct {
 	bool Enable;
 	volatile Ifx_ASCLIN* module; /*  Base address */
 	RxSelect_t RxMux; /*  RX Port control */
-	CtsSelect_t CtsMux; /*  CTS Port Control */
+	RxSelect_t CtsMux; /*  CTS Port Control */
 	volatile Ifx_SRC_SRCR* SrcReg[3];
 } UART_t;
 /******************************************************************************/
@@ -132,44 +132,44 @@ typedef struct {
 const UART_t UART_tbl[UART_CHANNELS_NUM] =
 		{
 #if (ASCLIN0 == UARTUSB)
-				{ TRUE, &MODULE_ASCLIN0, RxSel_a, CtsSel_a, { &SRC_ASCLIN0RX,
+				{ TRUE, &MODULE_ASCLIN0, RxSel_a, RxSel_a, { &SRC_ASCLIN0RX,
 						&SRC_ASCLIN0TX, &SRC_ASCLIN0ERR } },
 #else
-				{	FALSE,0,(RxSelect_t)0, (CtsSelect_t) 0, {0,0,0}},
+				{	FALSE,0,(RxSelect_t)0, (RxSelect_t) 0, {0,0,0}},
 #endif
 
 #if (ASCLIN1 == UART1)
-				{	TRUE, &MODULE_ASCLIN1, RxSel_b, CtsSel_a, {&SRC_ASCLIN1RX, &SRC_ASCLIN1TX,&SRC_ASCLIN1ERR}},
+				{	TRUE, &MODULE_ASCLIN1, RxSel_b, RxSel_a, {&SRC_ASCLIN1RX, &SRC_ASCLIN1TX,&SRC_ASCLIN1ERR}},
 #else
-				{ FALSE, 0, (RxSelect_t) 0, (CtsSelect_t) 0, { 0, 0, 0 } },
+				{ FALSE, 0, (RxSelect_t) 0, (RxSelect_t) 0, { 0, 0, 0 } },
 #endif
 #if (ASCLIN1 == UART2)
-				{ TRUE, &MODULE_ASCLIN1, RxSel_g, CtsSel_a, { &SRC_ASCLIN1RX,
+				{ TRUE, &MODULE_ASCLIN1, RxSel_g, RxSel_a, { &SRC_ASCLIN1RX,
 						&SRC_ASCLIN1TX, &SRC_ASCLIN1ERR } },
 #else
-				{	FALSE,0,(RxSelect_t)0, (CtsSelect_t) 0, {0,0,0}},
+				{	FALSE,0,(RxSelect_t)0, (RxSelect_t) 0, {0,0,0}},
 #endif
 #if (ASCLIN1 == UART3)
-				{	TRUE, &MODULE_ASCLIN1, RxSel_d, CtsSel_a, {&SRC_ASCLIN1RX, &SRC_ASCLIN1TX,&SRC_ASCLIN1ERR}},
+				{	TRUE, &MODULE_ASCLIN1, RxSel_d, RxSel_a, {&SRC_ASCLIN1RX, &SRC_ASCLIN1TX,&SRC_ASCLIN1ERR}},
 #else
-				{ FALSE, 0, (RxSelect_t) 0, (CtsSelect_t) 0, { 0, 0, 0 } },
+				{ FALSE, 0, (RxSelect_t) 0, (RxSelect_t) 0, { 0, 0, 0 } },
 #endif
 #if (ASCLIN2 == UART4)
-				{ TRUE, &MODULE_ASCLIN2, RxSel_b, CtsSel_a, { &SRC_ASCLIN2RX,
+				{ TRUE, &MODULE_ASCLIN2, RxSel_b, RxSel_a, { &SRC_ASCLIN2RX,
 						&SRC_ASCLIN2TX, &SRC_ASCLIN2ERR } },
 #else
-				{	FALSE,0,(RxSelect_t)0, (CtsSelect_t) 0, {0,0,0}},
+				{	FALSE,0,(RxSelect_t)0, (RxSelect_t) 0, {0,0,0}},
 #endif
 #if (ASCLIN2 == UART5)
-				{	TRUE,&MODULE_ASCLIN2, RxSel_e, CtsSel_a, {&SRC_ASCLIN2RX, &SRC_ASCLIN2TX,&SRC_ASCLIN2ERR}},
+				{	TRUE,&MODULE_ASCLIN2, RxSel_e, RxSel_a, {&SRC_ASCLIN2RX, &SRC_ASCLIN2TX,&SRC_ASCLIN2ERR}},
 #else
-				{ FALSE, 0, (RxSelect_t) 0, (CtsSelect_t) 0, { 0, 0, 0 } },
+				{ FALSE, 0, (RxSelect_t) 0, (RxSelect_t) 0, { 0, 0, 0 } },
 #endif
 #if (ASCLIN3 == UART6)
-				{ TRUE, &MODULE_ASCLIN3, RxSel_e, CtsSel_a, { &SRC_ASCLIN3RX,
+				{ TRUE, &MODULE_ASCLIN3, RxSel_e, RxSel_a, { &SRC_ASCLIN3RX,
 						&SRC_ASCLIN3TX, &SRC_ASCLIN3ERR } },
 #else
-		{	FALSE,0,(RxSelect_t)0, (CtsSelect_t) 0, {0,0,0}}
+		{	FALSE,0,(RxSelect_t)0, (RxSelect_t) 0, {0,0,0}}
 #endif
 	};
 
