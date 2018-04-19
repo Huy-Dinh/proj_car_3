@@ -43,19 +43,18 @@
 
 extern IRQ_hdl_t Cdisptab[MAX_INTRS];
 
-
 volatile uint64_t RxIsrCount = 0;
 volatile uint64_t TxIsrCount = 0;
 volatile uint64_t TmIsrCount = 0;
 
-uint8_t test = 0xFF;
-volatile uint64_t countingTimer;
 
-volatile uint32_t corruptedPackets;
+/*==========================================
+ * UART Test functions, variables and typedefs
+ *========================================*/
+volatile uint32_t mismatchedPackets;
 volatile uint32_t timedOutPackets;
 
 #define BUFFER_SIZE 500
-
 typedef enum
 {
 	TEST_RUN, TEST_RECV_PASSED, TEST_STOPPED
@@ -73,16 +72,34 @@ unsigned char receiveBuffer[BUFFER_SIZE];
 
 volatile unsigned int sendIndex;
 volatile unsigned int receiveIndex;
+volatile int failedAt = 0;
 
-void resetTimer()
-{
-	countingTimer = 0;
-}
+int memcompare(char * a, char * b, int size);
+testResult_t runOneTest();
+void runSeveralTest(uint32_t numberOfTests, uint32_t* numberOfTimeFails, uint32_t* numberOfMismatch);
+void resetTest();
+void fillSendBuffer();
 
-uint64_t getTimer()
-{
-	return countingTimer;
-}
+/*==========================================
+ * Timer functions, ISR and counter
+ *========================================*/
+volatile uint64_t timerCounter;
+void resetTimer();
+uint64_t getTimer();
+void Sample_Timer_Isr(int inputChannel);
+
+/*==========================================
+ * UART ISRs
+ *========================================*/
+void TX_UART_RX_Isr(int inputChannel);
+void TX_UART_TX_Isr(int inputChannel);
+void RX_UART_RX_Isr(int inputChannel);
+void RX_UART_TX_Isr(int inputChannel);
+void UART_Err_Isr(int inputChannel);
+
+/*==========================================
+ * The common dispatcher for interrupts
+ *========================================*/
 Ifx_CPU_ICR IcrValue;
 
 void commonDispatcher()
@@ -94,153 +111,6 @@ void commonDispatcher()
 	}
 }
 
-void TX_UART_RX_Isr(int inputChannel)
-{
-	MODULE_ASCLIN2.FLAGSCLEAR.B.RFLC = 1;
-	// Read the byte anyway
-	UART_ReadData(inputChannel, &test);
-}
-
-void TX_UART_TX_Isr(int inputChannel)
-{
-	//++TxIsrCount;
-	MODULE_ASCLIN2.FLAGSCLEAR.B.TFLC = 1;
-}
-
-void RX_UART_RX_Isr(int inputChannel)
-{
-	++RxIsrCount;
-	MODULE_ASCLIN3.FLAGSCLEAR.B.RFLC = 1;
-	//while (MODULE_ASCLIN3.RXFIFOCON.B.FILL > 0)
-	//{
-		if (UART_ReadData(inputChannel, &(receiveBuffer[receiveIndex])) == RC_SUCCESS)
-		{
-			resetTimer();
-			if (receiveBuffer[receiveIndex] != sendBuffer[receiveIndex])
-			{
-				testStatus = TEST_STOPPED;
-			}
-			else
-			if (receiveIndex < (BUFFER_SIZE - 1))
-			{
-				++receiveIndex;
-			}
-			else
-			{
-				testStatus = TEST_RECV_PASSED;
-				receiveIndex = 0;
-			}
-		}
-	//}
-}
-
-void RX_UART_TX_Isr(int inputChannel)
-{
-	MODULE_ASCLIN3.FLAGSCLEAR.B.TFLC = 1;
-}
-
-void Sample_Timer_Isr(int inputChannel)
-{
-	GPT12_Reload(GPT12_T2);
-	++TmIsrCount;
-	countingTimer++;
-	if ((testStatus == TEST_RUN) && (sendIndex <= (BUFFER_SIZE - 1)))
-	{
-		if (UART_WriteData(uart4, sendBuffer[sendIndex]) == RC_SUCCESS)
-		{
-			++sendIndex;
-		}
-	}
-	else
-	{
-		//Do nothing
-	}
-}
-
-void UART_Err_Isr(int inputChannel)
-{
-	MODULE_ASCLIN2.FLAGSCLEAR.B.FEC = 1;
-	MODULE_ASCLIN2.FLAGSCLEAR.B.RFUC = 1;
-}
-volatile int failedAt = 0;
-
-int memcompare(char * a, char * b, int size)
-{
-	int i = 0;
-	for (i = 0; i < size; i++)
-	{
-		if (a[i] != b[i])
-			return i;
-	}
-	return -1;
-}
-
-testResult_t runOneTest()
-{
-	resetTest();
-	testStatus = TEST_RUN;
-	GPT12_StartStop(GPT12_T2, Start);
-	while (getTimer() < 20000)
-	{
-		if (testStatus == TEST_RECV_PASSED)
-		{
-			testStatus = TEST_STOPPED;
-			failedAt = memcompare(receiveBuffer, sendBuffer, BUFFER_SIZE);
-			return TEST_PASS;
-		}
-		else if (testStatus == TEST_STOPPED)
-		{
-			testStatus = TEST_STOPPED;
-			return TEST_FAILED_CORRUPT;
-		}
-	}
-	testStatus = TEST_STOPPED;
-	return TEST_FAILED_TIME;
-}
-
-void runSeveralTest(uint32_t numberOfTests, uint32_t* numberOfTimeFails,
-		uint32_t* numberOfCorruptions)
-{
-	uint32_t i = 0;
-	*numberOfCorruptions = 0;
-	*numberOfTimeFails = 0;
-	testResult_t singleTestResult;
-	for (i = 0; i < numberOfTests; i++)
-	{
-		singleTestResult = runOneTest();
-		if (singleTestResult == TEST_FAILED_CORRUPT)
-		{
-			++(*numberOfCorruptions);
-		}
-		else if (singleTestResult == TEST_FAILED_TIME)
-		{
-			++(*numberOfTimeFails);
-		}
-	}
-	GPT12_StartStop(GPT12_T2, Stop);
-}
-
-void resetTest()
-{
-	testStatus = TEST_STOPPED;
-	GPT12_StartStop(GPT12_T2, Stop);
-	resetTimer();
-	ASCLIN2_RXFIFOCON.B.FLUSH = 1;
-	ASCLIN3_RXFIFOCON.B.FLUSH = 1;
-	ASCLIN2_TXFIFOCON.B.FLUSH = 1;
-	sendIndex = 0;
-	receiveIndex = 0;
-	memset(receiveBuffer, 0, BUFFER_SIZE);
-}
-
-void fillSendBuffer()
-{
-	unsigned int i = 0;
-	for (i = 0; i < (BUFFER_SIZE - 1); i++)
-	{
-		sendBuffer[i] = i % 255;
-	}
-}
 
 int main()
 {
@@ -291,21 +161,13 @@ int main()
 		SYSTEM_EnableInterrupts();
 
 		fillSendBuffer();
-		runSeveralTest(numberOfTests, &timedOutPackets, &corruptedPackets);
+		runSeveralTest(numberOfTests, &timedOutPackets, &mismatchedPackets);
 		//Initialize core synchronization
 		SYNC_Init();
 		_nop();
 
 	}
 
-	//TLF DEVELOPMENT
-	//For now, we stop here, no OS and no cores are started
-	//The TFT Backlight is turned off. Port_cfg.cpp Port 20 Pin 13
-	//test01();
-//	while(1){
-//		//test01();
-//		test02();
-//	}
 
 	//Initialize PxROS
 	switch (CoreID)
@@ -338,3 +200,151 @@ int main()
 	return 1;
 
 }
+
+void resetTimer()
+{
+	timerCounter = 0;
+}
+uint64_t getTimer()
+{
+	return timerCounter;
+}
+void Sample_Timer_Isr(int inputChannel)
+{
+	GPT12_Reload(GPT12_T2);
+	++TmIsrCount;
+	timerCounter++;
+	if ((testStatus == TEST_RUN) && (sendIndex <= (BUFFER_SIZE - 1)))
+	{
+		if (UART_WriteData(uart4, sendBuffer[sendIndex]) == RC_SUCCESS)
+		{
+			++sendIndex;
+		}
+	}
+	else
+	{
+		//Do nothing
+	}
+}
+
+void TX_UART_RX_Isr(int inputChannel)
+{
+	MODULE_ASCLIN2.FLAGSCLEAR.B.RFLC = 1;
+	uint8_t dummyReadByte;
+	UART_ReadData(inputChannel, &dummyReadByte);
+}
+void TX_UART_TX_Isr(int inputChannel)
+{
+	MODULE_ASCLIN2.FLAGSCLEAR.B.TFLC = 1;
+	++TxIsrCount;
+}
+void RX_UART_RX_Isr(int inputChannel)
+{
+	MODULE_ASCLIN3.FLAGSCLEAR.B.RFLC = 1;
+	++RxIsrCount;
+	if (UART_ReadData(inputChannel, &(receiveBuffer[receiveIndex])) == RC_SUCCESS)
+	{
+		resetTimer();
+		if (receiveBuffer[receiveIndex] != sendBuffer[receiveIndex])
+		{
+			testStatus = TEST_STOPPED;
+		}
+		else
+		if (receiveIndex < (BUFFER_SIZE - 1))
+		{
+			++receiveIndex;
+		}
+		else
+		{
+			testStatus = TEST_RECV_PASSED;
+			receiveIndex = 0;
+		}
+	}
+}
+void RX_UART_TX_Isr(int inputChannel)
+{
+	MODULE_ASCLIN3.FLAGSCLEAR.B.TFLC = 1;
+}
+void UART_Err_Isr(int inputChannel)
+{
+	MODULE_ASCLIN2.FLAGSCLEAR.B.FEC = 1;
+	MODULE_ASCLIN2.FLAGSCLEAR.B.RFUC = 1;
+}
+
+int memcompare(char * a, char * b, int size)
+{
+	int i = 0;
+	for (i = 0; i < size; i++)
+	{
+		if (a[i] != b[i])
+			return i;
+	}
+	return -1;
+}
+testResult_t runOneTest()
+{
+	resetTest();
+	testStatus = TEST_RUN;
+	GPT12_StartStop(GPT12_T2, Start);
+	while (getTimer() < 20000)
+	{
+		if (testStatus == TEST_RECV_PASSED)
+		{
+			testStatus = TEST_STOPPED;
+			failedAt = memcompare(receiveBuffer, sendBuffer, BUFFER_SIZE);
+			GPT12_StartStop(GPT12_T2, Stop);
+			return TEST_PASS;
+		}
+		else if (testStatus == TEST_STOPPED)
+		{
+			testStatus = TEST_STOPPED;
+			GPT12_StartStop(GPT12_T2, Stop);
+			return TEST_FAILED_CORRUPT;
+		}
+	}
+	testStatus = TEST_STOPPED;
+	GPT12_StartStop(GPT12_T2, Stop);
+	return TEST_FAILED_TIME;
+}
+void runSeveralTest(uint32_t numberOfTests, uint32_t* numberOfTimeFails,
+		uint32_t* numberOfMismatch)
+{
+	uint32_t i = 0;
+	*numberOfMismatch = 0;
+	*numberOfTimeFails = 0;
+	testResult_t singleTestResult;
+	for (i = 0; i < numberOfTests; i++)
+	{
+		singleTestResult = runOneTest();
+		if (singleTestResult == TEST_FAILED_CORRUPT)
+		{
+			++(*numberOfMismatch);
+		}
+		else if (singleTestResult == TEST_FAILED_TIME)
+		{
+			++(*numberOfTimeFails);
+		}
+	}
+	GPT12_StartStop(GPT12_T2, Stop);
+}
+void resetTest()
+{
+	testStatus = TEST_STOPPED;
+	GPT12_StartStop(GPT12_T2, Stop);
+	resetTimer();
+	ASCLIN2_RXFIFOCON.B.FLUSH = 1;
+	ASCLIN3_RXFIFOCON.B.FLUSH = 1;
+	ASCLIN2_TXFIFOCON.B.FLUSH = 1;
+	sendIndex = 0;
+	receiveIndex = 0;
+	memset(receiveBuffer, 0, BUFFER_SIZE);
+}
+void fillSendBuffer()
+{
+	unsigned int i = 0;
+	for (i = 0; i < (BUFFER_SIZE - 1); i++)
+	{
+		sendBuffer[i] = i % 255;
+	}
+}
+
