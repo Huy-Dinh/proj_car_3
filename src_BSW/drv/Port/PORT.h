@@ -409,11 +409,11 @@ typedef enum
  */
 typedef enum
 {
-	CsSel_a = 0x00,
-	CsSel_b,
-	CsSel_c,
-	CsSel_d
-}CsSelect_t;
+	CtsSel_a = 0x00,
+	CtsSel_b,
+	CtsSel_c,
+	CtsSel_d
+}CtsSelect_t;
 /*******************************************************************************
 **                      Global Function Declarations                          **
 *******************************************************************************/
