@@ -44,13 +44,13 @@ uartConfig_t const UART_Config[UART_CHANNELS_NUM] =
  *				|			   |	|			|		 |		  		 |
  *				|			   |	|			|		 |		  		 |
  */
-/* UARTUSB*/{uart_115200	, __8, StopBit_1,  None, CsDisable, LowActive, TxInt_1	,   RxInt_1},
-/* UART 1 */{uart_115200	, __8, StopBit_1,  None, CsDisable, LowActive, TxInt_1	,   RxInt_1},
-/* UART 2 */{uart_115200	, __8, StopBit_1,  None, CsDisable, LowActive, TxInt_1	,   RxInt_1},
-/* UART 3 */{uart_115200	, __8, StopBit_1,  None, CsDisable, LowActive, TxInt_1	,   RxInt_1},
-/* UART 4 */{uart_115200	, __8, StopBit_1,  None, CsEnable, LowActive, TxInt_1	,   RxInt_1},
-/* UART 5 */{uart_115200	, __8, StopBit_1,  None, CsDisable, LowActive, TxInt_1	,   RxInt_1},
-/* UART 6 */{uart_115200	, __8, StopBit_1,  None, CsDisable, LowActive, TxInt_1	,   RxInt_1}
+/* UARTUSB*/{uart_115200	, __8, StopBit_1,  None, CtsDisable, LowActive, TxInt_1	,   RxInt_1},
+/* UART 1 */{uart_115200	, __8, StopBit_1,  None, CtsDisable, LowActive, TxInt_1	,   RxInt_1},
+/* UART 2 */{uart_115200	, __8, StopBit_1,  None, CtsDisable, LowActive, TxInt_1	,   RxInt_1},
+/* UART 3 */{uart_115200	, __8, StopBit_1,  None, CtsDisable, LowActive, TxInt_1	,   RxInt_1},
+/* UART 4 */{uart_115200	, __8, StopBit_1,  None, CtsEnable, LowActive, TxInt_1	,   RxInt_1},
+/* UART 5 */{uart_115200	, __8, StopBit_1,  None, CtsDisable, LowActive, TxInt_1	,   RxInt_1},
+/* UART 6 */{uart_115200	, __8, StopBit_1,  None, CtsDisable, LowActive, TxInt_1	,   RxInt_1}
 };
 
 

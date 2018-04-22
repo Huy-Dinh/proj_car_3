@@ -109,21 +109,21 @@ typedef enum
 } UART_TxFifoIntLevel_t;
 
 
-/** @HD: CS Enable bit
+/** @HD: CTS Enable bit
  */
 typedef enum
 {
-	CsDisable = 0,
-	CsEnable
-} UART_CsEnable_t;
+	CtsDisable = 0,
+	CtsEnable
+} UART_CtsEnable_t;
 
-/** @HD: CS Polarity configuration
+/** @HD: CTS Polarity configuration
  */
 typedef enum
 {
 	HighActive = 0,
 	LowActive
-} UART_CsPolarity_t;
+} UART_CtsPolarity_t;
 
 /**  Number of stop bits
  */
@@ -152,8 +152,8 @@ typedef struct
     UART_DataLength_t     		dataLength;         /*  DATCON.DATALENGTH, data length, number of bits per transfer */
     UART_StopBit_t        		stopBit;            /*  FRAMECON.STOP, number of stop bits */
     UART_ParityType_t     		parityType;         /*  FRAMECON.ODD, parity type (even or odd) */
-    UART_CsEnable_t				csEnable;			/*  IOCR.CTSEN CS Enable*/
-    UART_CsPolarity_t			csPolarity;			/*  IOCR.RCPOL CS polarity (HighActive or LowActive)*/
+    UART_CtsEnable_t			ctsEnable;			/*  IOCR.CTSEN CTS Enable*/
+    UART_CtsPolarity_t			ctsPolarity;			/*  IOCR.RCPOL CTS polarity (HighActive or LowActive)*/
     UART_TxFifoIntLevel_t 		txFifoInterruptLevel;     /*  TXFIFOCON.INTLEVEL, Tx FIFO interrupt level */
     UART_RxFifoIntLevel_t 		rxFifoInterruptLevel;     /*  RXFIFOCON.INTLEVEL, Rx FIFO interrupt level */
 } uartConfig_t;

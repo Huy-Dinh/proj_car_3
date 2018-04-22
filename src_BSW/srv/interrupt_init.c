@@ -24,8 +24,8 @@
 	<http://www.gnu.org/licenses/>.  */
 
 #include "interrupt_init.h"
-
-extern void commonDispatcher();
+#include "IfxCpu_reg.h"
+#include "IfxCpu_regdef.h"
 
 //#pragma section ".sys.inttab"
 
@@ -286,6 +286,19 @@ IRQ_hdl_t Cdisptab[MAX_INTRS]={
 		{NULL,0}
 };
 
+
+/*==========================================
+ * The common dispatcher for interrupts
+ *========================================*/
+void commonDispatcher()
+{
+	Ifx_CPU_ICR IcrValue = (Ifx_CPU_ICR) __MFCR(CPU_ICR);
+	if (Cdisptab[IcrValue.B.CCPN].irq_handler != NULL)
+	{
+		Cdisptab[IcrValue.B.CCPN].irq_handler(Cdisptab[IcrValue.B.CCPN].hnd_arg);
+	}
+}
+
 //#pragma section
 
 /* This is the default interrupt vector table, which consists of 32
@@ -322,16 +335,13 @@ asm ("						\n\
 	.globl TriCore_int_table		\n\
 TriCore_int_table:				\n\
 ");
-DSYNC
 asm ("            \n\
 .align 5        \n\
 .globl ___commonDispatcher      \n\
 ___commonDispatcher:          \n\
 "); 
-DSYNC
-asm ("\n");
 asm	("enable");
-asm ("SVLCX");
+asm ("svlcx");
 asm("calla commonDispatcher");
 asm("rslcx");
 asm("rfe");
