@@ -41,8 +41,6 @@
 #include "IfxCpu_regdef.h"
 #include <machine/intrinsics.h>
 
-extern IRQ_hdl_t Cdisptab[MAX_INTRS];
-
 volatile uint64_t RxIsrCount = 0;
 volatile uint64_t TxIsrCount = 0;
 volatile uint64_t TmIsrCount = 0;
@@ -96,20 +94,6 @@ void TX_UART_TX_Isr(int inputChannel);
 void RX_UART_RX_Isr(int inputChannel);
 void RX_UART_TX_Isr(int inputChannel);
 void UART_Err_Isr(int inputChannel);
-
-/*==========================================
- * The common dispatcher for interrupts
- *========================================*/
-Ifx_CPU_ICR IcrValue;
-
-void commonDispatcher()
-{
-	IcrValue = (Ifx_CPU_ICR) __MFCR(CPU_ICR);
-	if (Cdisptab[IcrValue.B.CCPN].irq_handler != NULL)
-	{
-		Cdisptab[IcrValue.B.CCPN].irq_handler(Cdisptab[IcrValue.B.CCPN].hnd_arg);
-	}
-}
 
 
 int main()
