@@ -336,7 +336,6 @@ asm ("						\n\
 TriCore_int_table:				\n\
 ");
 asm ("            \n\
-.align 5        \n\
 .globl ___commonDispatcher      \n\
 ___commonDispatcher:          \n\
 "); 
@@ -345,7 +344,6 @@ asm ("svlcx");
 asm("calla commonDispatcher");
 asm("rslcx");
 asm("rfe");
-asm (".align 5");
 
 asm (".text");
 #if defined(ERRATA_CPU13) || defined(ERRATA_DMI12)
