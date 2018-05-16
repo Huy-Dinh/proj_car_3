@@ -300,6 +300,7 @@ static void UART__setBitTiming(Ifx_ASCLIN *uartreg, UART_Baud_t baudrate,
  * Init uart modules
  * @param: channel Uart channel number
  * @return: void
+ * \warning This function will only enable the interrupt bits if there is an entry in the interrupt table
  */
 static void UART__initModule(uartChannel_t channel) {
 	/* pointer to UART registers*/
@@ -399,12 +400,7 @@ void UART_init() {
  */
 RC_t UART_WriteData(uartChannel_t channel, uint8_t data) {
 	if (UART_tbl[channel].Enable == TRUE) {
-		//UART_tbl[channel].module->TXDATA.U = UART_tbl[channel].module->TXFIFOCON.B.FILL + '0';
 		if (UART_tbl[channel].module->TXFIFOCON.B.FILL < UART_FIFO_MAXLEVEL) {
-//			if (UART_tbl[channel].module->FLAGS.B.TFL)
-//			{
-//				UART_tbl[channel].module->FLAGSCLEAR.B.TFLC = 1;
-//			}
 			UART_tbl[channel].module->TXDATA.U = data;
 			return RC_SUCCESS;
 		}
