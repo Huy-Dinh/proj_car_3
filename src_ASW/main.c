@@ -98,7 +98,7 @@ void UART_Err_Isr(int inputChannel);
 
 int main()
 {
-	volatile uint32_t numberOfTests = 2;
+	volatile uint32_t numberOfTests = 10;
 
 	// Storage for the result of PxInit
 	PxError_t PxInit_ret = PXERR_NOERROR;
@@ -132,7 +132,10 @@ int main()
 			DET_stop(AUTOCORE, QSPI_MODULE_INIT, 0);
 
 		UART_init();
-
+		MODULE_ASCLIN2.FLAGSENABLE.B.RFLE = TRUE;
+		MODULE_ASCLIN2.FLAGSENABLE.B.TFLE = TRUE;
+		MODULE_ASCLIN3.FLAGSENABLE.B.RFLE = TRUE;
+		MODULE_ASCLIN3.FLAGSENABLE.B.TFLE = TRUE;
 		ISR_Install_preOS(&SRC_ASCLIN2RX, TX_UART_RX_Isr, cpu0, 32, uart4);
 		ISR_Install_preOS(&SRC_ASCLIN2TX, TX_UART_TX_Isr, cpu0, 33, uart4);
 
