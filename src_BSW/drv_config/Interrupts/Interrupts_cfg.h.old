@@ -5,8 +5,8 @@
  *      Author: Gunaseelan
  */
 
-#ifndef SRC_BSW_DRV_CONFIG_INTERRUPTROUTER_INTERRUPTROUTER_CFG_H_
-#define SRC_BSW_DRV_CONFIG_INTERRUPTROUTER_INTERRUPTROUTER_CFG_H_
+#ifndef SRC_BSW_DRV_CONFIG_INTERRUPTS_INTERRUPTS_CFG_H_OLD_
+#define SRC_BSW_DRV_CONFIG_INTERRUPTS_INTERRUPTS_CFG_H_OLD_
 #include "InterruptRouter.h"
 #ifdef __cplusplus
   extern "C" {
@@ -16,4 +16,4 @@ extern const IntConfig_t IntConfigTbl[];
 #ifdef __cplusplus
   }
 #endif /* __cplusplus */
-#endif /* SRC_BSW_DRV_CONFIG_INTERRUPTROUTER_INTERRUPTROUTER_CFG_H_ */
+#endif /* SRC_BSW_DRV_CONFIG_INTERRUPTS_INTERRUPTS_CFG_H_OLD_ */
