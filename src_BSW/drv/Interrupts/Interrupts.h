@@ -89,6 +89,7 @@
 #define TOP_DOCUMENTED_DEFINE                    0x1
 #define AFTER_DOCUMENTED_DEFINE                  0x2         /**< \brief by putting a < next to the comment-start. The documentation referes to the left instead to the next line. */
 
+
 //####################### Enumerations
 /**
 * \brief INT_handler_t describes the type of the OS installation function to be used for the ISR
@@ -130,7 +131,9 @@ public:
 /*****************************************************************************/
 /* API functions                                                             */
 /*****************************************************************************/
-
+#ifdef __cplusplus
+  extern "C" {
+#endif /* __cplusplus */
 //####################### PreOs / Bare Metal Interrupt Configuration
 
 
@@ -139,7 +142,7 @@ public:
  * \param <Format: copy of the parameter type and name - description>
  * \return error code
  */
-RC_t INT_preOsStart(INT_isrEntry_t* table);
+RC_t INT_preOsStart(INT_isrEntry_t* table, uint16_t tableSize);
 
 /**
  * This function clears the service request nodes and interrupt vector table
@@ -161,13 +164,13 @@ RC_t INT_preOsStop(void);
 RC_t INT_osInstall(Ifx_SRC_SRCR* serviceRequestNode, INT_isr_t pIsr, uint8_t priority, INT_handler_t handlerType);
 
 RC_t INT_osUnInstall();
-
-
+#ifdef __cplusplus
+  }
+#endif /* __cplusplus */
 
 /*****************************************************************************/
 /* Private stuff, only visible for Together, declared static in cpp - File   */
 /*****************************************************************************/
-
 
 #ifdef TOGETHER
 //Not visible for compiler, only used for document generation

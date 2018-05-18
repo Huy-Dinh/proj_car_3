@@ -22,6 +22,8 @@
 /*****************************************************************************/
 
 #include "Interrupts.h"
+#include "SRC.h"
+#include "system.h"
 
 /*****************************************************************************/
 /* Local pre-processor symbols/macros ('#define')                            */
@@ -58,9 +60,11 @@ static INT__preOsConfig_t INT_preOsConfig = {0, 0};
 /* Function implementation - global ('extern') and local ('static')          */
 /*****************************************************************************/
 
+#ifdef __cplusplus
+  extern "C" {
+#endif /* __cplusplus */
+
 //####################### PreOs / Bare Metal Interrupt Configuration
-
-
 /**
  * This function configures the service request nodes and interrupt vector table based on the given configuration parameter
  * \param <Format: copy of the parameter type and name - description>
@@ -68,15 +72,22 @@ static INT__preOsConfig_t INT_preOsConfig = {0, 0};
  */
 RC_t INT_preOsStart(INT_isrEntry_t* table, uint16_t tableSize)
 {
-
+	uint8_t i = 0;
 	//Iterate through the table
+	for (i = 0; i < tableSize; i++)
+	{
 		//Configure the IRN ==< please use the registers from src.h.old
-
+		SRC_init(table[i].SRC, table[i].Core, i+1);
+		SRC_enable(table[i].SRC);
+	}
 	//Set pointer and size to internal configuration
 	INT_preOsConfig.table = table;
 	INT_preOsConfig.tableSize = tableSize;
 
-	//Enable gloabl interrupts
+	//Enable global interrupts
+	SYSTEM_EnableInterrupts();
+
+	return RC_SUCCESS;
 }
 
 /**
@@ -86,10 +97,15 @@ RC_t INT_preOsStart(INT_isrEntry_t* table, uint16_t tableSize)
  */
 RC_t INT_preOsStop(void)
 {
+	uint8_t i = 0;
 	//Disable global interrupts
-
+	SYSTEM_DisableInterrupts();
 	//Reset all SRN configurations
-
+	for (i = 0; i < INT_preOsConfig.tableSize; i++)
+	{
+		SRC_deinit(INT_preOsConfig.table[i].SRC);
+	}
+	return RC_SUCCESS;
 }
 
 //####################### OS Configuration
@@ -113,4 +129,7 @@ RC_t INT_osInstall(Ifx_SRC_SRCR* serviceRequestNode, INT_isr_t pIsr, uint8_t pri
 	//Depending on the handler type, call the corresponding PXROS function
 
 }
+#ifdef __cplusplus
+  }
+#endif /* __cplusplus */
 
