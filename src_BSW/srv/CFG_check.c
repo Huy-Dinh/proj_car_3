@@ -22,7 +22,7 @@
 //-------------------------------------------------------------------- [includes for checker functions]
 #include "CAN.h"
 #include "CANopen.h"
-#include "InterruptRouter.h"
+//#include "InterruptRouter.h"
 
 
 //-------------------------------------------------------------------- [local declarations]
@@ -47,7 +47,7 @@ typedef RC_t (*__cfg_chec_func)( void );
  */
 __cfg_chec_func __cfg_chec_funcs[]={
 		__CFG_check_cast,
-		InterruptRouter_CfgValidation,
+		//InterruptRouter_CfgValidation,
 
 		//Do not remove next line!
 		NULL

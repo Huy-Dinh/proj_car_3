@@ -22,7 +22,7 @@
 #include "CAN.h"
 #include "CAN_config.h"
 #include "system.h"
-#include "InterruptRouter.h"
+//#include "InterruptRouter.h"
 #include "logging.h"
 #include "clock.h"
 
@@ -633,8 +633,8 @@ RC_t CAN_init(uint8_t NodeID){
 	}
 
 	//Enable Interrupt lines (see #CAN_CFG_RX_IR_L and #CAN_CFG_TX_IR_L for interrupt line allocation)
-	InterruptRouter_CfgSRC(&SRC_CANINT0);
-	InterruptRouter_CfgSRC(&SRC_CANINT1);
+	//InterruptRouter_CfgSRC(&SRC_CANINT0);
+	//InterruptRouter_CfgSRC(&SRC_CANINT1);
 
 	//reset CCE and INIT flag for CAN Nodes, so they participate on the bus
 	for(__node_i = 0; __node_i < DERIVATE_NUM_CAN_N; __node_i++)

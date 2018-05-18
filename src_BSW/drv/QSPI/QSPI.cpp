@@ -28,7 +28,7 @@
 #include "QSPI_cfg.h"
 #include "priv/QSPI_priv.h"
 
-#include "InterruptRouter.h"
+//#include "InterruptRouter.h"
 
 
 #pragma section ".com.spi"
@@ -498,10 +498,10 @@ STATIC void sQSPI_module_init(uint8_t module_num){
 
 	// configure interrupts
 	//TODO: this will not work if we have different Interrupt tables
-	InterruptRouter_CfgSRC(&QSPI_cfg[module_num].p_src_module->TX);
-	InterruptRouter_CfgSRC(&QSPI_cfg[module_num].p_src_module->ERR);
+	//InterruptRouter_CfgSRC(&QSPI_cfg[module_num].p_src_module->TX);
+	//InterruptRouter_CfgSRC(&QSPI_cfg[module_num].p_src_module->ERR);
 	if ((TRUE == QSPI_cfg[module_num].pt1Int_enable) || (TRUE == QSPI_cfg[module_num].pt2Int_enable))
-		InterruptRouter_CfgSRC(&QSPI_cfg[module_num].p_src_module->PT);
+		//InterruptRouter_CfgSRC(&QSPI_cfg[module_num].p_src_module->PT);
 
 	//run
 	QSPI_cfg[module_num].p_module->GLOBALCON.B.EN = 1;

@@ -7,7 +7,7 @@
 
 #include "Gpt_timer.h"
 #include "register.h"
-#include "InterruptRouter.h"
+//#include "InterruptRouter.h"
 
 /******************************************************************************/
 /*---------------------------------- Local Variables--------------------------*/
@@ -97,7 +97,7 @@ void GPT12_Config(const GPT12_Config_t* pStrGPTConfig)
 			MODULE_GPT120.T2CON.B.T2RDIR 	= GPT_CLEAR;
 			MODULE_GPT120.T2CON.B.T2CHDIR 	= GPT_CLEAR;
 			MODULE_GPT120.T2.B.T2			= pStrGPTConfig->GptReloadValue;
-			InterruptRouter_CfgSRC(&SRC_GPT120T2);
+			//InterruptRouter_CfgSRC(&SRC_GPT120T2);
 			break;
 		}
 
@@ -115,7 +115,7 @@ void GPT12_Config(const GPT12_Config_t* pStrGPTConfig)
 			MODULE_GPT120.T3CON.B.T3RDIR 	= GPT_CLEAR;
 			MODULE_GPT120.T3CON.B.T3CHDIR 	= GPT_CLEAR;
 			MODULE_GPT120.T3.B.T3			= pStrGPTConfig->GptReloadValue;
-			InterruptRouter_CfgSRC(&SRC_GPT120T3);
+			//InterruptRouter_CfgSRC(&SRC_GPT120T3);
 			break;
 		}
 

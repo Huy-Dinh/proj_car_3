@@ -16,7 +16,7 @@
 #include "SRC.h"
 #include "system.h"
 #include "system_configuration.h"
-#include "InterruptRouter.h"
+//#include "InterruptRouter.h"
 #include "clock.h"
 
 /******************************************************************************/
@@ -358,13 +358,13 @@ static void UART__initModule(uartChannel_t channel) {
 	UARTReg->FLAGSENABLE.B.TFOE = TRUE;
 
 	/* initialize the interrupts */
-	if (InterruptRouter_CfgSRC(UART_tbl[channel].SrcReg[0])) {
+	//if (InterruptRouter_CfgSRC(UART_tbl[channel].SrcReg[0])) {
 		UARTReg->FLAGSENABLE.B.RFLE = TRUE;
-	}
-	if (InterruptRouter_CfgSRC(UART_tbl[channel].SrcReg[1])) {
+	//}
+	//if (InterruptRouter_CfgSRC(UART_tbl[channel].SrcReg[1])) {
 		UARTReg->FLAGSENABLE.B.TFLE = TRUE;
-	}
-	InterruptRouter_CfgSRC(UART_tbl[channel].SrcReg[2]);
+	//}
+	//InterruptRouter_CfgSRC(UART_tbl[channel].SrcReg[2]);
 	/* enable transfers */
 	UARTReg->RXFIFOCON.B.ENI = TRUE;  		// enabling Rx FIFO for receiving
 	UARTReg->TXFIFOCON.B.ENO = TRUE; 		// enabling Tx FIFO for transmitting
