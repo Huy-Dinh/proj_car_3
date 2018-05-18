@@ -14,7 +14,7 @@
 #include "global.h"
 #include "symbols.h"
 #include "SystemEvents.h"
-#include "InterruptRouter.h"
+//#include "InterruptRouter.h"
 #include "system.h"
 #include <stdio.h>
 
@@ -230,9 +230,9 @@ void CTask_C2_TFT::Task_Func(PxTask_t myID, PxMbx_t myMailbox, PxEvents_t myActi
 	(void) myMailbox;
 	(void) myActivationEvents;
 	
-	InterruptRouter_InstallISR(QSPI0_txISR, (PxArg_t) myID.id);
-	InterruptRouter_InstallISR(QSPI0_ptISR, (PxArg_t) myID.id);
-	InterruptRouter_InstallISR(QSPI0_errorISR, (PxArg_t) myID.id);
+	//InterruptRouter_InstallISR(QSPI0_txISR, (PxArg_t) myID.id);
+	//InterruptRouter_InstallISR(QSPI0_ptISR, (PxArg_t) myID.id);
+	//InterruptRouter_InstallISR(QSPI0_errorISR, (PxArg_t) myID.id);
 
 	PxEvents_t event = {0};
 

@@ -32,7 +32,7 @@
 #include "rte_time.h"
 #include "det_time.h"
 
-#include "InterruptRouter.h"
+//#include "InterruptRouter.h"
 #include "register.h"
 #include "IfxSrc_reg.h"
 #include "IfxAsclin_reg.h"
@@ -136,13 +136,13 @@ int main()
 		MODULE_ASCLIN2.FLAGSENABLE.B.TFLE = TRUE;
 		MODULE_ASCLIN3.FLAGSENABLE.B.RFLE = TRUE;
 		MODULE_ASCLIN3.FLAGSENABLE.B.TFLE = TRUE;
-		ISR_Install_preOS(&SRC_ASCLIN2RX, TX_UART_RX_Isr, cpu0, 32, uart4);
-		ISR_Install_preOS(&SRC_ASCLIN2TX, TX_UART_TX_Isr, cpu0, 33, uart4);
+		//ISR_Install_preOS(&SRC_ASCLIN2RX, TX_UART_RX_Isr, cpu0, 32, uart4);
+		//ISR_Install_preOS(&SRC_ASCLIN2TX, TX_UART_TX_Isr, cpu0, 33, uart4);
 
-		ISR_Install_preOS(&SRC_ASCLIN3RX, RX_UART_RX_Isr, cpu0, 34, uart6);
-		ISR_Install_preOS(&SRC_ASCLIN3TX, RX_UART_TX_Isr, cpu0, 35, uart6);
+		//ISR_Install_preOS(&SRC_ASCLIN3RX, RX_UART_RX_Isr, cpu0, 34, uart6);
+		//ISR_Install_preOS(&SRC_ASCLIN3TX, RX_UART_TX_Isr, cpu0, 35, uart6);
 
-		ISR_Install_preOS(&SRC_GPT120T2, Sample_Timer_Isr, cpu0, 31, 0);
+		//ISR_Install_preOS(&SRC_GPT120T2, Sample_Timer_Isr, cpu0, 31, 0);
 
 		GPT12_StartStop(GPT12_T2, Stop);
 		SYSTEM_EnableInterrupts();

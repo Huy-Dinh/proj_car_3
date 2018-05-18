@@ -40,8 +40,8 @@
 
 //Trap Handler and Interrupts
 #include "trap_handler_runtime.h"
-#include "InterruptRouter.h"
-#include "InterruptRouter_cfg.h"
+//#include "InterruptRouter.h"
+//#include "InterruptRouter_cfg.h"
 
 //RTE Timing Analysis
 #include "rte_time.h"
@@ -172,16 +172,16 @@ void Task_C0_Init_Func(PxTask_t myID, PxMbx_t myMailbox, PxEvents_t myActivation
 
 #ifdef RTE_TIMING_ANALYSIS
 	//InterruptRouter_InstallISR(RTE_TIMER_T3_ISR, (PxArg_t) myID.id);
-	if(ISR_Install_C(RTE_TIMER_T3_ISR, (PxArg_t) myID.id))
-	{
-		;
-	}
+	//if(ISR_Install_C(RTE_TIMER_T3_ISR, (PxArg_t) myID.id))
+	//{
+	//	;
+	//}
 #endif //RTE_TIMING_ANALYSIS
 
-	if(ISR_Install_C(DET_TIMER_T2_ISR, (PxArg_t) myID.id))
-	{
-		;
-	}
+	//if(ISR_Install_C(DET_TIMER_T2_ISR, (PxArg_t) myID.id))
+	//{
+	//	;
+	//}
 
 	DET_TIME_ctrl(Start);
 

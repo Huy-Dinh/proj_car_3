@@ -27,8 +27,8 @@
 #include "symbols.h"
 #include "SystemEvents.h"
 #include "logging.h"
-#include "InterruptRouter.h"
-#include "InterruptRouter_cfg.h"
+//#include "InterruptRouter.h"
+//#include "InterruptRouter_cfg.h"
 #include "carconfig.h"
 #include "det.h"
 
@@ -431,18 +431,18 @@ void CTask_C0_Communication::Task_Func(PxTask_t myID, PxMbx_t myMailbox, PxEvent
 
     //Install ISR handlers
 	//RTE Time through USB
-	InterruptRouter_InstallISR(UART_ASCLIN0_RxISR, (PxArg_t) myID.id);
+	//InterruptRouter_InstallISR(UART_ASCLIN0_RxISR, (PxArg_t) myID.id);
 
 	//Remote through UART1
-	InterruptRouter_InstallISR(UART_ASCLIN1_RxISR, (PxArg_t) myID.id);
-	InterruptRouter_InstallISR(UART_ASCLIN1_TxISR, (PxArg_t) myID.id);
+	//InterruptRouter_InstallISR(UART_ASCLIN1_RxISR, (PxArg_t) myID.id);
+	//InterruptRouter_InstallISR(UART_ASCLIN1_TxISR, (PxArg_t) myID.id);
 
 	//Lidar collission / heartbeat through UART4
-	InterruptRouter_InstallISR(UART_ASCLIN2_RxISR, (PxArg_t) myID.id);
+	//InterruptRouter_InstallISR(UART_ASCLIN2_RxISR, (PxArg_t) myID.id);
 
 	//Engine, Lidar and Power through CAN
-	InterruptRouter_InstallISR(CAN_RxISR, (PxArg_t) myID.id);
-	InterruptRouter_InstallISR(CAN_TxISR, (PxArg_t) myID.id);
+	//InterruptRouter_InstallISR(CAN_RxISR, (PxArg_t) myID.id);
+	//InterruptRouter_InstallISR(CAN_TxISR, (PxArg_t) myID.id);
 
 	//Event variable set in the ISR's
 	PxMsgEvent_t EveMsg = {0};
