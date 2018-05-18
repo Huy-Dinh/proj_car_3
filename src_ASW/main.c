@@ -32,7 +32,7 @@
 #include "rte_time.h"
 #include "det_time.h"
 
-//#include "InterruptRouter.h"
+#include "Interrupts.h"
 #include "register.h"
 #include "IfxSrc_reg.h"
 #include "IfxAsclin_reg.h"
@@ -44,7 +44,6 @@
 volatile uint64_t RxIsrCount = 0;
 volatile uint64_t TxIsrCount = 0;
 volatile uint64_t TmIsrCount = 0;
-
 
 /*==========================================
  * UART Test functions, variables and typedefs
@@ -84,16 +83,16 @@ void fillSendBuffer();
 volatile uint64_t timerCounter;
 void resetTimer();
 uint64_t getTimer();
-void Sample_Timer_Isr(int inputChannel);
+void Sample_Timer_Isr(PxArg_t inputArg);
 
 /*==========================================
  * UART ISRs
  *========================================*/
-void TX_UART_RX_Isr(int inputChannel);
-void TX_UART_TX_Isr(int inputChannel);
-void RX_UART_RX_Isr(int inputChannel);
-void RX_UART_TX_Isr(int inputChannel);
-void UART_Err_Isr(int inputChannel);
+void TX_UART_RX_Isr(PxArg_t  inputArg);
+void TX_UART_TX_Isr(PxArg_t  inputArg);
+void RX_UART_RX_Isr(PxArg_t  inputArg);
+void RX_UART_TX_Isr(PxArg_t  inputArg);
+void UART_Err_Isr(PxArg_t  inputArg);
 
 
 int main()
@@ -143,9 +142,9 @@ int main()
 		//ISR_Install_preOS(&SRC_ASCLIN3TX, RX_UART_TX_Isr, cpu0, 35, uart6);
 
 		//ISR_Install_preOS(&SRC_GPT120T2, Sample_Timer_Isr, cpu0, 31, 0);
-
+		INT_preOsStart(INT_preOsTable, INT_preOsTableSize);
 		GPT12_StartStop(GPT12_T2, Stop);
-		SYSTEM_EnableInterrupts();
+		//SYSTEM_EnableInterrupts();
 
 		fillSendBuffer();
 		runSeveralTest(numberOfTests, &timedOutPackets, &mismatchedPackets);
@@ -196,7 +195,7 @@ uint64_t getTimer()
 {
 	return timerCounter;
 }
-void Sample_Timer_Isr(int inputChannel)
+void Sample_Timer_Isr(PxArg_t inputArg)
 {
 	GPT12_Reload(GPT12_T2);
 	++TmIsrCount;
@@ -214,22 +213,22 @@ void Sample_Timer_Isr(int inputChannel)
 	}
 }
 
-void TX_UART_RX_Isr(int inputChannel)
+void TX_UART_RX_Isr(PxArg_t inputArg)
 {
 	MODULE_ASCLIN2.FLAGSCLEAR.B.RFLC = 1;
 	uint8_t dummyReadByte;
-	UART_ReadData(inputChannel, &dummyReadByte);
+	UART_ReadData(uart4, &dummyReadByte);
 }
-void TX_UART_TX_Isr(int inputChannel)
+void TX_UART_TX_Isr(PxArg_t inputArg)
 {
 	MODULE_ASCLIN2.FLAGSCLEAR.B.TFLC = 1;
 	++TxIsrCount;
 }
-void RX_UART_RX_Isr(int inputChannel)
+void RX_UART_RX_Isr(PxArg_t inputArg)
 {
 	MODULE_ASCLIN3.FLAGSCLEAR.B.RFLC = 1;
 	++RxIsrCount;
-	if (UART_ReadData(inputChannel, &(receiveBuffer[receiveIndex])) == RC_SUCCESS)
+	if (UART_ReadData(uart6, &(receiveBuffer[receiveIndex])) == RC_SUCCESS)
 	{
 		resetTimer();
 		if (receiveBuffer[receiveIndex] != sendBuffer[receiveIndex])
@@ -248,11 +247,11 @@ void RX_UART_RX_Isr(int inputChannel)
 		}
 	}
 }
-void RX_UART_TX_Isr(int inputChannel)
+void RX_UART_TX_Isr(PxArg_t inputArg)
 {
 	MODULE_ASCLIN3.FLAGSCLEAR.B.TFLC = 1;
 }
-void UART_Err_Isr(int inputChannel)
+void UART_Err_Isr(PxArg_t inputArg)
 {
 	MODULE_ASCLIN2.FLAGSCLEAR.B.FEC = 1;
 	MODULE_ASCLIN2.FLAGSCLEAR.B.RFUC = 1;

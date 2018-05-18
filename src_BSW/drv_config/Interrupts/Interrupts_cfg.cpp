@@ -65,21 +65,12 @@
    * 3. CONFIGURE THE TABLE IN ORDER OF CORES TO AVOID CONFUSION
    * 4. All ISR handlers must be declared with "extern "C" linkage"
    */
-  extern void UART_ASCLIN0_RxISR(PxArg_t arg); 	//RteTiming command
-  extern void RTE_TIMER_T3_ISR(PxArg_t arg); 	//RteTimerTick
-  extern void DET_TIMER_T2_ISR(PxArg_t arg); 	//DetTimerTick
-
-  extern void UART_ASCLIN1_RxISR(PxArg_t arg); 	//Remote command
-  extern void UART_ASCLIN1_TxISR(PxArg_t arg); 	//Remote command
-
-  extern void UART_ASCLIN2_RxISR(PxArg_t arg); 	//Lidar collission and Heartbeat
-
-  extern void CAN_RxISR(PxArg_t arg);			//CAN bus
-  extern void CAN_TxISR(PxArg_t arg);			//CAN bus
-
-  extern void QSPI0_txISR(PxArg_t arg);
-  extern void QSPI0_ptISR(PxArg_t arg);
-  extern void QSPI0_errorISR(PxArg_t arg);
+extern void Sample_Timer_Isr(PxArg_t  inputArg);
+extern void TX_UART_RX_Isr(PxArg_t  inputArg);
+extern void TX_UART_TX_Isr(PxArg_t  inputArg);
+extern void RX_UART_RX_Isr(PxArg_t  inputArg);
+extern void RX_UART_TX_Isr(PxArg_t  inputArg);
+extern void UART_Err_Isr(PxArg_t  inputArg);
 
  /*
   * 			SRC register
@@ -90,18 +81,11 @@
   * 				|					|				|
   */
 const INT_isrEntry_t INT_preOsTable[] = {
-		{&SRC_ASCLIN0RX, 		&UART_ASCLIN0_RxISR,	cpu0 }, // will be priority 1
-		{&SRC_ASCLIN1RX,		&UART_ASCLIN1_RxISR,	cpu0 },	// priority 2
-		{&SRC_ASCLIN1TX,		&UART_ASCLIN1_TxISR,	cpu0,		35},	// Remote / Zigbee
-		{&SRC_ASCLIN2RX,		&UART_ASCLIN2_RxISR,	cpu0,		34},	// Collission Signal from LIDAR
-		{&SRC_CANINT1,			&CAN_RxISR, 			cpu0,		40},	// CAN RX
-		{&SRC_CANINT0,			&CAN_TxISR, 			cpu0,		39},	// CAN TX
-		{&SRC_GPT120T3, 		&RTE_TIMER_T3_ISR, 		cpu0,	    60},	//Needs high priority due to exact time measurement
-		{&SRC_GPT120T2,			&DET_TIMER_T2_ISR, 		cpu0,       59},
-		{&SRC_QSPI0TX,          &QSPI0_txISR,           cpu2,       32},
-		{&SRC_QSPI0PT,          &QSPI0_ptISR,           cpu2,       31},
-		{&SRC_QSPI0ERR,         &QSPI0_errorISR,        cpu2,       30},
-		{0,0,(CpuId_t)0,0}
+		{&SRC_GPT120T2, 		&Sample_Timer_Isr,	cpu0 }, // Timer priority 1
+		{&SRC_ASCLIN2RX,		&TX_UART_RX_Isr,	cpu0 },	// TX UART's RX priority 2
+		{&SRC_ASCLIN2TX,		&TX_UART_TX_Isr,	cpu0 },	// TX UART's TX riority 3
+		{&SRC_ASCLIN3RX,		&RX_UART_RX_Isr,	cpu0 },	// RX UART's RX riority 4
+		{&SRC_ASCLIN3TX,		&RX_UART_TX_Isr, 	cpu0 }	// TX UART's TX riority 5
 };
 
 const uint16_t INT_preOsTableSize = sizeof(INT_preOsTable) / sizeof(INT_isrEntry_t);

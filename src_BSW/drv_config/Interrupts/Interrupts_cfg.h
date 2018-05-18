@@ -30,11 +30,10 @@
   	volatile Ifx_SRC_SRCR* 	SRC;			// SRC register
   	INT_isr_t				pIsr;			// ISR function pointer
   	CpuId_t					Core;			// Type Of service
-  	uint8_t					Priority;		//	Priority of the interrupt
   }INT_isrEntry_t;
 
 extern const INT_isrEntry_t INT_preOsTable[];
-
+extern const uint16_t INT_preOsTableSize;
 #ifdef __cplusplus
   }
 #endif /* __cplusplus */
