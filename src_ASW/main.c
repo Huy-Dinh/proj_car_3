@@ -98,7 +98,7 @@ void UART_Err_Isr(int inputChannel);
 
 int main()
 {
-	volatile uint32_t numberOfTests = 10;
+	volatile uint32_t numberOfTests = 1000;
 
 	// Storage for the result of PxInit
 	PxError_t PxInit_ret = PXERR_NOERROR;
