@@ -221,3 +221,7 @@ IfxAsclin_bf.h
 .project
 .htcproject
 .cproject
+
+*.o
+
+*.d
