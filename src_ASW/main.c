@@ -36,7 +36,7 @@
 #include "register.h"
 #include "IfxSrc_reg.h"
 #include "IfxAsclin_reg.h"
-#include "interrupt_init.h"
+//#include "interrupt_init.h"
 #include "IfxCpu_reg.h"
 #include "IfxCpu_regdef.h"
 #include <machine/intrinsics.h>
@@ -131,21 +131,9 @@ int main()
 			DET_stop(AUTOCORE, QSPI_MODULE_INIT, 0);
 
 		UART_init();
-		MODULE_ASCLIN2.FLAGSENABLE.B.RFLE = TRUE;
-		MODULE_ASCLIN2.FLAGSENABLE.B.TFLE = TRUE;
-		MODULE_ASCLIN3.FLAGSENABLE.B.RFLE = TRUE;
-		MODULE_ASCLIN3.FLAGSENABLE.B.TFLE = TRUE;
-		//ISR_Install_preOS(&SRC_ASCLIN2RX, TX_UART_RX_Isr, cpu0, 32, uart4);
-		//ISR_Install_preOS(&SRC_ASCLIN2TX, TX_UART_TX_Isr, cpu0, 33, uart4);
-
-		//ISR_Install_preOS(&SRC_ASCLIN3RX, RX_UART_RX_Isr, cpu0, 34, uart6);
-		//ISR_Install_preOS(&SRC_ASCLIN3TX, RX_UART_TX_Isr, cpu0, 35, uart6);
-
-		//ISR_Install_preOS(&SRC_GPT120T2, Sample_Timer_Isr, cpu0, 31, 0);
 		INT_preOsStart(INT_preOsTable, INT_preOsTableSize);
-		GPT12_StartStop(GPT12_T2, Stop);
-		//SYSTEM_EnableInterrupts();
 
+		GPT12_StartStop(GPT12_T2, Stop);
 		fillSendBuffer();
 		runSeveralTest(numberOfTests, &timedOutPackets, &mismatchedPackets);
 		//Initialize core synchronization

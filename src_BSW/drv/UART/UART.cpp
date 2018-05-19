@@ -358,14 +358,9 @@ static void UART__initModule(uartChannel_t channel) {
 	UARTReg->FLAGSENABLE.B.TFOE = TRUE;
 
 	/* initialize the interrupts */
-	//if (InterruptRouter_CfgSRC(UART_tbl[channel].SrcReg[0])) {
-		UARTReg->FLAGSENABLE.B.RFLE = TRUE;
-	//}
-	//if (InterruptRouter_CfgSRC(UART_tbl[channel].SrcReg[1])) {
-		UARTReg->FLAGSENABLE.B.TFLE = TRUE;
-	//}
-	//InterruptRouter_CfgSRC(UART_tbl[channel].SrcReg[2]);
-	/* enable transfers */
+	UARTReg->FLAGSENABLE.B.RFLE = TRUE;
+	UARTReg->FLAGSENABLE.B.TFLE = TRUE;
+
 	UARTReg->RXFIFOCON.B.ENI = TRUE;  		// enabling Rx FIFO for receiving
 	UARTReg->TXFIFOCON.B.ENO = TRUE; 		// enabling Tx FIFO for transmitting
 

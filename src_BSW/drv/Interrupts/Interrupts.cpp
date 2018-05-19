@@ -24,6 +24,9 @@
 #include "Interrupts.h"
 #include "SRC.h"
 #include "system.h"
+#include "IfxCpu_reg.h"
+#include "IfxCpu_regdef.h"
+#include "global.h"
 
 /*****************************************************************************/
 /* Local pre-processor symbols/macros ('#define')                            */
@@ -129,7 +132,34 @@ RC_t INT_osInstall(Ifx_SRC_SRCR* serviceRequestNode, INT_isr_t pIsr, uint8_t pri
 	//Depending on the handler type, call the corresponding PXROS function
 
 }
+
+/********************/
+/* Technical Stuffs */
+/********************/
+
+//This function is called whenever an Interrupt occurs
+void commonDispatcher()
+{
+  	Ifx_CPU_ICR IcrValue = {__MFCR(CPU_ICR)}; // Workaround for the C++ constructor problem
+  	if (IcrValue.B.CCPN < INT_preOsConfig.tableSize)
+  	{
+  		if (INT_preOsConfig.table[IcrValue.B.CCPN].pIsr != NULL)
+  		{
+  			INT_preOsConfig.table[IcrValue.B.CCPN].pIsr(NULL);
+  		}
+  	}
+}
+// Interrupt Table Entry, the BIV points to this after startup
+asm (".section .interrupttable_init_in, \"ax\", @progbits");	// Create an input section
+asm("enable");													//enable interrupts
+asm("svlcx");													//save lower context
+asm("calla commonDispatcher");									//call common dispatcher function
+asm("rslcx");													//restore lower context
+asm("rfe");														//return from exception (leave ISR)
+asm (".text");
+
+
 #ifdef __cplusplus
-  }
+}
 #endif /* __cplusplus */
 
