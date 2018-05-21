@@ -148,8 +148,12 @@ RC_t DTS_initModule()
 
     /* enable DTS IRQ */
     volatile Ifx_SRC_SRCR *src = DTS_getSrcPointer();
-    SRC_init(src, cpu0, ISR_DTS_PRIO);
-    SRC_enable(src);
+    //SRC_init(src, cpu0, ISR_DTS_PRIO);
+    //SRC_enable(src);
+    src->B.SRPN = ISR_DTS_PRIO; //Set up the priority
+    src->B.TOS = cpu0; //Select the core
+    src->B.CLRR = 1; //Clear pending request
+    src->B.SRE = 1; //Enable the SRN
 
     return RC_SUCCESS;
 }
@@ -166,9 +170,10 @@ boolean_t DTS_isReady(void)
 
 void DTS_isr(void)
 {
+	volatile Ifx_SRC_SRCR *src = DTS_getSrcPointer();
 	// Update global temperature variable with sensor data
 	DieTemperature = DTS_getTemperatureCelsius();
-	SRC_clearRequest(DTS_getSrcPointer());
+	src->B.CLRR = 1; //Clear pending request
 }
 
 #pragma section

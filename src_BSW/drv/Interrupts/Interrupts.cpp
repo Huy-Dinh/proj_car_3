@@ -22,7 +22,7 @@
 /*****************************************************************************/
 
 #include "Interrupts.h"
-#include "SRC.h"
+//#include "SRC.h"
 #include "system.h"
 #include "IfxCpu_reg.h"
 #include "IfxCpu_regdef.h"
@@ -80,8 +80,10 @@ RC_t INT_preOsStart(INT_isrEntry_t* table, uint16_t tableSize)
 	for (i = 0; i < tableSize; i++)
 	{
 		//Configure the IRN ==< please use the registers from src.h.old
-		SRC_init(table[i].SRC, table[i].Core, i+1);
-		SRC_enable(table[i].SRC);
+		table[i].SRC->B.SRPN = i + 1; //Set up the priority
+		table[i].SRC->B.TOS = table[i].Core; //Select the core
+		table[i].SRC->B.CLRR = 1; //Clear pending request
+		table[i].SRC->B.SRE = 1; //Enable the SRN
 	}
 	//Set pointer and size to internal configuration
 	INT_preOsConfig.table = table;
@@ -106,7 +108,7 @@ RC_t INT_preOsStop(void)
 	//Reset all SRN configurations
 	for (i = 0; i < INT_preOsConfig.tableSize; i++)
 	{
-		SRC_deinit(INT_preOsConfig.table[i].SRC);
+		INT_preOsConfig.table[i].SRC->U = 0;
 	}
 	return RC_SUCCESS;
 }
@@ -140,12 +142,12 @@ RC_t INT_osInstall(Ifx_SRC_SRCR* serviceRequestNode, INT_isr_t pIsr, uint8_t pri
 //This function is called whenever an Interrupt occurs
 void commonDispatcher()
 {
-  	Ifx_CPU_ICR IcrValue = {__MFCR(CPU_ICR)}; // Workaround for the C++ constructor problem
-  	if (IcrValue.B.CCPN < INT_preOsConfig.tableSize)
+	Ifx_CPU_ICR IcrValue = {__MFCR(CPU_ICR)}; // Workaround for the C++ constructor problem
+  	if ((IcrValue.B.CCPN <= INT_preOsConfig.tableSize) || (IcrValue.B.CCPN > 0))
   	{
-  		if (INT_preOsConfig.table[IcrValue.B.CCPN].pIsr != NULL)
+  		if (INT_preOsConfig.table[IcrValue.B.CCPN - 1].pIsr != NULL)
   		{
-  			INT_preOsConfig.table[IcrValue.B.CCPN].pIsr(NULL);
+  			INT_preOsConfig.table[IcrValue.B.CCPN - 1].pIsr(NULL);
   		}
   	}
 }
