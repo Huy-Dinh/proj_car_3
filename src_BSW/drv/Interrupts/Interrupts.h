@@ -161,7 +161,7 @@ RC_t INT_preOsStop(void);
  * \param INT_handler_t handlerType type of hanlder to be installed. Check the enum description for details
  * \return error code
  */
-RC_t INT_osInstall(Ifx_SRC_SRCR* serviceRequestNode, INT_isr_t pIsr, uint8_t priority, INT_handler_t handlerType);
+RC_t INT_osInstall(Ifx_SRC_SRCR* serviceRequestNode, INT_isr_t pIsr, uint8_t priority, INT_handler_t handlerType, PxArg_t argument);
 
 RC_t INT_osUnInstall();
 #ifdef __cplusplus

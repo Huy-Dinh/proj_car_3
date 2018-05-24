@@ -44,6 +44,7 @@ typedef struct
 {
 	INT_isrEntry_t* table;
 	uint16_t tableSize;
+	uint8_t intConfigBits[32];
 } INT__preOsConfig_t;
 
 /*****************************************************************************/
@@ -51,14 +52,22 @@ typedef struct
 /*****************************************************************************/
 
 //Todo: Define Section
-static INT__preOsConfig_t INT_preOsConfig = {0, 0};
-
+static INT__preOsConfig_t INT_preOsConfig = {0, 0, {}};
 
 /*****************************************************************************/
 /* Local function prototypes ('static')                                      */
 /*****************************************************************************/
+#ifdef __cplusplus
+  extern "C" {
+#endif /* __cplusplus */
 
+  static void INT_setConfigBit(uint8_t priority);
+static void INT_clearConfigBit(uint8_t priority);
+static uint8_t INT_configBitIsSet(uint8_t priority);
 
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 /*****************************************************************************/
 /* Function implementation - global ('extern') and local ('static')          */
 /*****************************************************************************/
@@ -123,16 +132,88 @@ RC_t INT_preOsStop(void)
  * \param INT_handler_t handlerType type of hanlder to be installed. Check the enum description for details
  * \return error code
  */
-RC_t INT_osInstall(Ifx_SRC_SRCR* serviceRequestNode, INT_isr_t pIsr, uint8_t priority, INT_handler_t handlerType)
+RC_t INT_osInstall(Ifx_SRC_SRCR* serviceRequestNode, INT_isr_t pIsr, uint8_t priority, INT_handler_t handlerType, PxArg_t argument)
 {
 	//Check if the SRN already has been configured
-
-	//CHeck if priority already has been used
+	if (serviceRequestNode->B.SRE)
+	{
+		return RC_ERROR_BAD_PARAM;
+	}
+	//Check if priority already has been used
+	if (INT_configBitIsSet(priority))
+	{
+		return RC_ERROR_BAD_PARAM;
+	}
 
 	//Configure the IRN ==< please use the registers from src.h.old
-
+	serviceRequestNode->B.SRPN = priority; //Set up the priority
+	serviceRequestNode->B.TOS = SYSTEM_GetCoreId(); //Select the core
+	serviceRequestNode->B.CLRR = 1; //Clear pending request
 	//Depending on the handler type, call the corresponding PXROS function
+	switch (handlerType)
+	{
+		case INT_FASTCONTEXTHANDLER:
+			if (PxIntInstallFastContextHandler(priority, pIsr, argument) != PXERR_NOERROR)
+			{
+				return RC_ERROR;
+			}
+			else
+			{
+				serviceRequestNode->B.SRE = 1; //Enable the SRN
+				//Set the config bit so that we know an interrupt has been configured for this priority
+				INT_setConfigBit(priority);
+			}
+			break;
+		case INT_FASTHANDLER:
+			if (PxIntInstallFastHandler(priority, pIsr, argument) != PXERR_NOERROR)
+			{
+				return RC_ERROR;
+			}
+			else
+			{
+				serviceRequestNode->B.SRE = 1; //Enable the SRN
+				//Set the config bit so that we know an interrupt has been configured for this priority
+				INT_setConfigBit(priority);
+			}
+			break;
+		case INT_CONTEXTHANDLER:
+			// to be added
+			break;
+		default:
+			return RC_ERROR_BAD_PARAM;
+			break;
+	}
+	return RC_SUCCESS;
+}
 
+/********************/
+/* Local functions  */
+/********************/
+void INT_setConfigBit(uint8_t priority)
+{
+	uint8_t bitPosition = priority % 8;
+	uint8_t bytePosition = priority / 8;
+	INT_preOsConfig.intConfigBits[bytePosition] |= 1 << bitPosition;
+}
+
+void INT_clearConfigBit(uint8_t priority)
+{
+	uint8_t bitPosition = priority % 8;
+	uint8_t bytePosition = priority / 8;
+	INT_preOsConfig.intConfigBits[bytePosition] &= ~(1 << bitPosition);
+}
+uint8_t INT_configBitIsSet(uint8_t priority)
+{
+	uint8_t bitPosition = priority % 8;
+	uint8_t bytePosition = priority / 8;
+	if (INT_preOsConfig.intConfigBits[bytePosition] & (1 << bitPosition))
+	{
+		return 1;
+	}
+	else
+	{
+		return 0;
+	}
 }
 
 /********************/
