@@ -11,7 +11,7 @@
 #include "pxdef.h"
 #include "IfxSrc_reg.h"
 #include "IfxSrc_regdef.h"
-#include "global.h""
+#include "global.h"
 
 #ifdef __cplusplus
   extern "C" {

@@ -89,6 +89,9 @@
 #define TOP_DOCUMENTED_DEFINE                    0x1
 #define AFTER_DOCUMENTED_DEFINE                  0x2         /**< \brief by putting a < next to the comment-start. The documentation referes to the left instead to the next line. */
 
+#ifdef __cplusplus
+  extern "C" {
+#endif /* __cplusplus */
 
 //####################### Enumerations
 /**
@@ -131,9 +134,7 @@ public:
 /*****************************************************************************/
 /* API functions                                                             */
 /*****************************************************************************/
-#ifdef __cplusplus
-  extern "C" {
-#endif /* __cplusplus */
+
 //####################### PreOs / Bare Metal Interrupt Configuration
 
 

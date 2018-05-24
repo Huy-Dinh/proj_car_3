@@ -96,7 +96,8 @@ SECTIONS
 		*(.DET.data)
 		*(.trace.data) 
 		*(.data.rtetime.system)
-
+		*(.drv.isr.data)
+		
 		. = ALIGN(8);
 		PROVIDE(__GLOBAL_TASK_END = .);
 

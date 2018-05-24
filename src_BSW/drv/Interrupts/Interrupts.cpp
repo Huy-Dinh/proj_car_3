@@ -44,37 +44,32 @@ typedef struct
 {
 	INT_isrEntry_t* table;
 	uint16_t tableSize;
-	uint8_t intConfigBits[32];
 } INT__preOsConfig_t;
 
 /*****************************************************************************/
 /* Local variable definitions ('static')                                     */
 /*****************************************************************************/
-
-//Todo: Define Section
-static INT__preOsConfig_t INT_preOsConfig = {0, 0, {}};
-
-/*****************************************************************************/
-/* Local function prototypes ('static')                                      */
-/*****************************************************************************/
 #ifdef __cplusplus
   extern "C" {
 #endif /* __cplusplus */
 
-  static void INT_setConfigBit(uint8_t priority);
-static void INT_clearConfigBit(uint8_t priority);
-static uint8_t INT_configBitIsSet(uint8_t priority);
+//Todo: Define Section
+#pragma section ".drv.isr.data"
+static INT__preOsConfig_t INT__preOsConfig = {0, 0};
+static uint8_t INT__OSConfigBits[32] = {0};
+#pragma section
+/*****************************************************************************/
+/* Local function prototypes ('static')                                      */
+/*****************************************************************************/
 
-#ifdef __cplusplus
-}
-#endif /* __cplusplus */
+static void INT__setConfigBit(uint8_t priority);
+static void INT__clearConfigBit(uint8_t priority);
+static uint8_t INT__configBitIsSet(uint8_t priority);
+
 /*****************************************************************************/
 /* Function implementation - global ('extern') and local ('static')          */
 /*****************************************************************************/
 
-#ifdef __cplusplus
-  extern "C" {
-#endif /* __cplusplus */
 
 //####################### PreOs / Bare Metal Interrupt Configuration
 /**
@@ -85,6 +80,7 @@ static uint8_t INT_configBitIsSet(uint8_t priority);
 RC_t INT_preOsStart(INT_isrEntry_t* table, uint16_t tableSize)
 {
 	uint8_t i = 0;
+	SYSTEM_DisableInterrupts();
 	//Iterate through the table
 	for (i = 0; i < tableSize; i++)
 	{
@@ -95,8 +91,8 @@ RC_t INT_preOsStart(INT_isrEntry_t* table, uint16_t tableSize)
 		table[i].SRC->B.SRE = 1; //Enable the SRN
 	}
 	//Set pointer and size to internal configuration
-	INT_preOsConfig.table = table;
-	INT_preOsConfig.tableSize = tableSize;
+	INT__preOsConfig.table = table;
+	INT__preOsConfig.tableSize = tableSize;
 
 	//Enable global interrupts
 	SYSTEM_EnableInterrupts();
@@ -115,9 +111,9 @@ RC_t INT_preOsStop(void)
 	//Disable global interrupts
 	SYSTEM_DisableInterrupts();
 	//Reset all SRN configurations
-	for (i = 0; i < INT_preOsConfig.tableSize; i++)
+	for (i = 0; i < INT__preOsConfig.tableSize; i++)
 	{
-		INT_preOsConfig.table[i].SRC->U = 0;
+		INT__preOsConfig.table[i].SRC->U = 0;
 	}
 	return RC_SUCCESS;
 }
@@ -140,12 +136,12 @@ RC_t INT_osInstall(Ifx_SRC_SRCR* serviceRequestNode, INT_isr_t pIsr, uint8_t pri
 		return RC_ERROR_BAD_PARAM;
 	}
 	//Check if priority already has been used
-	if (INT_configBitIsSet(priority))
+	if (INT__configBitIsSet(priority))
 	{
 		return RC_ERROR_BAD_PARAM;
 	}
 
-	//Configure the IRN ==< please use the registers from src.h.old
+	//Configure the IRN
 	serviceRequestNode->B.SRPN = priority; //Set up the priority
 	serviceRequestNode->B.TOS = SYSTEM_GetCoreId(); //Select the core
 	serviceRequestNode->B.CLRR = 1; //Clear pending request
@@ -161,7 +157,7 @@ RC_t INT_osInstall(Ifx_SRC_SRCR* serviceRequestNode, INT_isr_t pIsr, uint8_t pri
 			{
 				serviceRequestNode->B.SRE = 1; //Enable the SRN
 				//Set the config bit so that we know an interrupt has been configured for this priority
-				INT_setConfigBit(priority);
+				INT__setConfigBit(priority);
 			}
 			break;
 		case INT_FASTHANDLER:
@@ -173,11 +169,12 @@ RC_t INT_osInstall(Ifx_SRC_SRCR* serviceRequestNode, INT_isr_t pIsr, uint8_t pri
 			{
 				serviceRequestNode->B.SRE = 1; //Enable the SRN
 				//Set the config bit so that we know an interrupt has been configured for this priority
-				INT_setConfigBit(priority);
+				INT__setConfigBit(priority);
 			}
 			break;
 		case INT_CONTEXTHANDLER:
-			// to be added
+			//TODO add handler call
+			return RC_ERROR_BAD_PARAM;
 			break;
 		default:
 			return RC_ERROR_BAD_PARAM;
@@ -189,24 +186,24 @@ RC_t INT_osInstall(Ifx_SRC_SRCR* serviceRequestNode, INT_isr_t pIsr, uint8_t pri
 /********************/
 /* Local functions  */
 /********************/
-void INT_setConfigBit(uint8_t priority)
+void INT__setConfigBit(uint8_t priority)
 {
 	uint8_t bitPosition = priority % 8;
 	uint8_t bytePosition = priority / 8;
-	INT_preOsConfig.intConfigBits[bytePosition] |= 1 << bitPosition;
+	INT__OSConfigBits[bytePosition] |= 1 << bitPosition;
 }
 
-void INT_clearConfigBit(uint8_t priority)
+void INT__clearConfigBit(uint8_t priority)
 {
 	uint8_t bitPosition = priority % 8;
 	uint8_t bytePosition = priority / 8;
-	INT_preOsConfig.intConfigBits[bytePosition] &= ~(1 << bitPosition);
+	INT__OSConfigBits[bytePosition] &= ~(1 << bitPosition);
 }
-uint8_t INT_configBitIsSet(uint8_t priority)
+uint8_t INT__configBitIsSet(uint8_t priority)
 {
 	uint8_t bitPosition = priority % 8;
 	uint8_t bytePosition = priority / 8;
-	if (INT_preOsConfig.intConfigBits[bytePosition] & (1 << bitPosition))
+	if (INT__OSConfigBits[bytePosition] & (1 << bitPosition))
 	{
 		return 1;
 	}
@@ -221,14 +218,14 @@ uint8_t INT_configBitIsSet(uint8_t priority)
 /********************/
 
 //This function is called whenever an Interrupt occurs
-void commonDispatcher()
+void INT_CommonDispatcher()
 {
 	Ifx_CPU_ICR IcrValue = {__MFCR(CPU_ICR)}; // Workaround for the C++ constructor problem
-  	if ((IcrValue.B.CCPN <= INT_preOsConfig.tableSize) || (IcrValue.B.CCPN > 0))
+  	if ((IcrValue.B.CCPN <= INT__preOsConfig.tableSize) || (IcrValue.B.CCPN > 0))
   	{
-  		if (INT_preOsConfig.table[IcrValue.B.CCPN - 1].pIsr != NULL)
+  		if (INT__preOsConfig.table[IcrValue.B.CCPN - 1].pIsr != NULL)
   		{
-  			INT_preOsConfig.table[IcrValue.B.CCPN - 1].pIsr(NULL);
+  			INT__preOsConfig.table[IcrValue.B.CCPN - 1].pIsr(NULL);
   		}
   	}
 }
@@ -236,7 +233,7 @@ void commonDispatcher()
 asm (".section .interrupttable_init_in, \"ax\", @progbits");	// Create an input section
 asm("enable");													//enable interrupts
 asm("svlcx");													//save lower context
-asm("calla commonDispatcher");									//call common dispatcher function
+asm("calla INT_CommonDispatcher");									//call common dispatcher function
 asm("rslcx");													//restore lower context
 asm("rfe");														//return from exception (leave ISR)
 asm (".text");
