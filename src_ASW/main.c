@@ -131,7 +131,9 @@ int main()
 			DET_stop(AUTOCORE, QSPI_MODULE_INIT, 0);
 
 		UART_init();
-		INT_preOsStart(INT_preOsTable, INT_preOsTableSize);
+
+		INT_preOsSetConfig(INT_preOsTable);
+		INT_preOsInstallIsrTable();
 
 		GPT12_StartStop(GPT12_T2, Stop);
 		fillSendBuffer();
